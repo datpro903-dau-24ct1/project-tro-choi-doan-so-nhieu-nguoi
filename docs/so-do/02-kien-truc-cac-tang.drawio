@@ -1,0 +1,84 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="layer1" value="&lt;b&gt;TẦNG 1: GIAO DIỆN &amp;amp; MẠNG (UI / Network Layer)&lt;/b&gt;" style="swimlane;startSize=30;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="30" width="820" height="140" as="geometry"/>
+    </mxCell>
+    <mxCell id="ui_client" value="&lt;b&gt;ClientUI (Swing GUI)&lt;/b&gt;&lt;br&gt;Ô nhập số, nút đoán, bảng điểm&lt;br&gt;+ Luồng đọc Socket riêng (F07, F17)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="layer1">
+      <mxGeometry x="30" y="48" width="240" height="72" as="geometry"/>
+    </mxCell>
+    <mxCell id="tcp_server" value="&lt;b&gt;GameServer (TCP)&lt;/b&gt;&lt;br&gt;ServerSocket + ExecutorService&lt;br&gt;Vòng lặp accept() kết nối (F06, F08)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="layer1">
+      <mxGeometry x="295" y="48" width="235" height="72" as="geometry"/>
+    </mxCell>
+    <mxCell id="client_handler" value="&lt;b&gt;ClientHandler (Runnable)&lt;/b&gt;&lt;br&gt;Phân tích giao thức F01 (JOIN/GUESS...)&lt;br&gt;Gửi phản hồi &amp;amp; Broadcast (F10, F18)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="layer1">
+      <mxGeometry x="555" y="48" width="240" height="72" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_c_s" value="Socket TCP" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="ui_client" target="tcp_server" parent="layer1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_s_h" value="submit()" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="tcp_server" target="client_handler" parent="layer1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="layer2" value="&lt;b&gt;TẦNG 2: NGHIỆP VỤ (Domain / Business Layer — Không phụ thuộc Mạng/UI, kiểm thử độc lập F05 / TC3 mức 3)&lt;/b&gt;" style="swimlane;startSize=30;html=1;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="220" width="820" height="170" as="geometry"/>
+    </mxCell>
+    <mxCell id="room_mgr" value="&lt;b&gt;QuanLyPhong &amp;amp; PhongChoi&lt;/b&gt;&lt;br&gt;Điều phối mở ván (F11), đa phòng (F21)&lt;br&gt;Hẹn giờ đóng ván Future (F20)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="layer2">
+      <mxGeometry x="30" y="50" width="240" height="95" as="geometry"/>
+    </mxCell>
+    <mxCell id="game_core" value="&lt;b&gt;Game (Lõi ván chơi đồng bộ)&lt;/b&gt;&lt;br&gt;Sinh số bí mật, synchronized doanSo()&lt;br&gt;Chốt người thắng (F04, F12, F13)&lt;br&gt;Hàng đợi lượt ArrayDeque (F19)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="layer2">
+      <mxGeometry x="295" y="50" width="235" height="95" as="geometry"/>
+    </mxCell>
+    <mxCell id="stats_svc" value="&lt;b&gt;ThongKeService (Streams API)&lt;/b&gt;&lt;br&gt;Tính lượt đoán trung bình (F16)&lt;br&gt;groupingBy, averagingDouble&lt;br&gt;Xếp hạng điểm Comparator (F14)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="layer2">
+      <mxGeometry x="555" y="50" width="240" height="95" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_rm_g" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="room_mgr" target="game_core" parent="layer2">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="layer3" value="&lt;b&gt;TẦNG 3: LƯU TRỮ TRONG BỘ NHỚ (In-Memory Storage / Repository Layer)&lt;/b&gt;" style="swimlane;startSize=30;html=1;fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="440" width="820" height="140" as="geometry"/>
+    </mxCell>
+    <mxCell id="online_repo" value="&lt;b&gt;SoNguoiChoiOnline (F09)&lt;/b&gt;&lt;br&gt;ConcurrentHashMap&amp;lt;String, PrintWriter&amp;gt;&lt;br&gt;Quản lý phiên trực tuyến" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="layer3">
+      <mxGeometry x="30" y="42" width="240" height="82" as="geometry"/>
+    </mxCell>
+    <mxCell id="history_repo" value="&lt;b&gt;KhoLichSuDoan (F15)&lt;/b&gt;&lt;br&gt;Map&amp;lt;String, List&amp;lt;LuotDoan&amp;gt;&amp;gt;&lt;br&gt;Ghi synchronized, trả bản sao bất biến" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="layer3">
+      <mxGeometry x="295" y="42" width="235" height="82" as="geometry"/>
+    </mxCell>
+    <mxCell id="score_repo" value="&lt;b&gt;KhoBangDiem (F14)&lt;/b&gt;&lt;br&gt;ConcurrentHashMap&amp;lt;String, Integer&amp;gt;&lt;br&gt;Cộng điểm merge(ten, 1, Integer::sum)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="layer3">
+      <mxGeometry x="555" y="42" width="240" height="82" as="geometry"/>
+    </mxCell>
+    <mxCell id="shared_box" value="&lt;b&gt;KIỂU KẾT QUẢ DÙNG CHUNG (Ch6)&lt;/b&gt;" style="swimlane;startSize=30;html=1;fillColor=#f8cecc;strokeColor=#b85450;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="900" y="130" width="310" height="360" as="geometry"/>
+    </mxCell>
+    <mxCell id="ketqua_sealed" value="&lt;b&gt;&amp;lt;&amp;lt;sealed interface&amp;gt;&amp;gt;&lt;br&gt;KetQua&amp;lt;T&amp;gt;&lt;/b&gt;&lt;br&gt;permits ThanhCong, ThatBai" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="shared_box">
+      <mxGeometry x="25" y="45" width="260" height="65" as="geometry"/>
+    </mxCell>
+    <mxCell id="kq_ok" value="&lt;b&gt;record ThanhCong&amp;lt;T&amp;gt;&lt;/b&gt;&lt;br&gt;(T duLieu, String thongDiep)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="shared_box">
+      <mxGeometry x="25" y="130" width="260" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="kq_err" value="&lt;b&gt;record ThatBai&amp;lt;T&amp;gt;&lt;/b&gt;&lt;br&gt;(String maLoi, String lyDo)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="shared_box">
+      <mxGeometry x="25" y="195" width="260" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="model_records" value="&lt;b&gt;record LuotDoan&lt;/b&gt; (F03)&lt;br&gt;&lt;b&gt;enum TrangThaiVan&lt;/b&gt; (F02)&lt;br&gt;&lt;b&gt;enum GoiY&lt;/b&gt; (LOWER/HIGHER/CORRECT)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="shared_box">
+      <mxGeometry x="25" y="265" width="260" height="75" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_l1_l2a" value="Gọi nghiệp vụ" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="tcp_server" target="game_core" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_l1_l2b" value="Tra cứu" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="client_handler" target="stats_svc" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_l2_l3a" value="Đọc/Ghi phiên" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="room_mgr" target="online_repo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_l2_l3b" value="Lưu lượt đoán" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="game_core" target="history_repo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_l2_l3c" value="Cộng &amp;amp; đọc điểm" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="stats_svc" target="score_repo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_l2_shared" value="Trả về KetQua&amp;lt;T&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;defaultLabelBackgroundColor=page;" edge="1" source="layer2" target="shared_box" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

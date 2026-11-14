@@ -1,0 +1,53 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="start" value="&lt;b&gt;BẮT ĐẦU VÁN CHƠI&lt;/b&gt;&lt;br&gt;Sinh soBiMat ∈ [min..max]&lt;br&gt;trangThai = PLAYING" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="360" y="20" width="220" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="wait_guess" value="Nhận yêu cầu &lt;b&gt;GUESS(ten, soDoan)&lt;/b&gt;&lt;br&gt;từ luồng ClientHandler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="350" y="120" width="240" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="sync_enter" value="&lt;b&gt;Vào vùng tới hạn:&lt;/b&gt;&lt;br&gt;synchronized (game)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="360" y="205" width="220" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="chk_state" value="trangThai ==&lt;br&gt;PLAYING ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="385" y="285" width="170" height="85" as="geometry"/>
+    </mxCell>
+    <mxCell id="err_closed" value="Trả về &lt;b&gt;KetQua.ThatBai&lt;/b&gt;&lt;br&gt;(&quot;VAN_DA_KET_THUC&quot;)&lt;br&gt;Nhả khoá synchronized" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+      <mxGeometry x="70" y="297" width="220" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="chk_valid" value="Đúng lượt (F19) &amp;amp;&lt;br&gt;soDoan ∈ [min..max] ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="370" y="405" width="200" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="err_invalid" value="Trả về &lt;b&gt;KetQua.ThatBai&lt;/b&gt;&lt;br&gt;(&quot;LUOT_DOAN_KHONG_HOP_LE&quot;)&lt;br&gt;Nhả khoá synchronized" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+      <mxGeometry x="70" y="420" width="220" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="chk_cmp" value="So sánh&lt;br&gt;soDoan với soBiMat" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="375" y="530" width="190" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="res_higher" value="&lt;b&gt;soDoan &amp;lt; soBiMat&lt;/b&gt;&lt;br&gt;Tạo record LuotDoan(HIGHER)&lt;br&gt;Lưu lịch sử, trả ThanhCong(HIGHER)&lt;br&gt;Gửi gợi ý: &lt;b&gt;LỚN HƠN&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="60" y="535" width="240" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="res_lower" value="&lt;b&gt;soDoan &amp;gt; soBiMat&lt;/b&gt;&lt;br&gt;Tạo record LuotDoan(LOWER)&lt;br&gt;Lưu lịch sử, trả ThanhCong(LOWER)&lt;br&gt;Gửi gợi ý: &lt;b&gt;NHỎ HƠN&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="640" y="535" width="240" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="res_win" value="&lt;b&gt;soDoan == soBiMat (TRÚNG)&lt;/b&gt;&lt;br&gt;1. nguoiThang = ten; trangThai = FINISHED&lt;br&gt;2. Huỷ hẹn giờ Future.cancel()&lt;br&gt;3. Tạo LuotDoan(CORRECT), lưu lịch sử&lt;br&gt;4. Cộng điểm Map.merge(ten, 1, Integer::sum)&lt;br&gt;5. Trả về KetQua.ThanhCong(CORRECT)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;" vertex="1" parent="1">
+      <mxGeometry x="325" y="660" width="290" height="115" as="geometry"/>
+    </mxCell>
+    <mxCell id="end_win" value="&lt;b&gt;KẾT THÚC VÁN&lt;/b&gt;&lt;br&gt;Nhả khoá synchronized&lt;br&gt;Broadcast công bố người thắng" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="355" y="810" width="230" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="f_e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="start" target="wait_guess" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="f_e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="wait_guess" target="sync_enter" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="f_e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="sync_enter" target="chk_state" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="f_e4" value="Sai" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="chk_state" target="err_closed" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="f_e5" value="Đúng" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="chk_state" target="chk_valid" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="f_e6" value="Sai" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="chk_valid" target="err_invalid" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="f_e7" value="Đúng" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="chk_valid" target="chk_cmp" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="f_e8" value="&amp;lt; soBiMat" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="chk_cmp" target="res_higher" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="f_e9" value="&amp;gt; soBiMat" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="chk_cmp" target="res_lower" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="f_e10" value="== soBiMat" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="chk_cmp" target="res_win" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="f_e11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="res_win" target="end_win" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+  </root>
+</mxGraphModel>

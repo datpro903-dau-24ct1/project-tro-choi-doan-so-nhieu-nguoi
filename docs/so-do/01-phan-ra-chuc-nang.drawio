@@ -1,0 +1,77 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="root" value="&lt;b&gt;ĐỀ 30: TRÒ CHƠI ĐOÁN SỐ NHIỀU NGƯỜI&lt;/b&gt;&lt;br&gt;(Phân rã chức năng F01 – F21)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1">
+      <mxGeometry x="440" y="30" width="320" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="b1" value="&lt;b&gt;1. PHẦN LÕI&lt;/b&gt;&lt;br&gt;Ứng dụng mạng &amp;amp; Ván chơi cơ bản" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="80" y="140" width="260" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="b2" value="&lt;b&gt;2. PHẢI LÀM&lt;/b&gt;&lt;br&gt;Đồng bộ, Mô hình &amp;amp; Dữ liệu Streams" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="470" y="140" width="260" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="b3" value="&lt;b&gt;3. MỞ RỘNG&lt;/b&gt;&lt;br&gt;Giới hạn thời gian &amp;amp; Đa phòng" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+      <mxGeometry x="860" y="140" width="260" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="f01" value="&lt;b&gt;F01: Giao thức lệnh dòng&lt;/b&gt;&lt;br&gt;JOIN, GUESS, SCORE, HISTORY, STATS, QUIT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="60" y="240" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f06_08" value="&lt;b&gt;F06, F08: Máy chủ TCP đa luồng&lt;/b&gt;&lt;br&gt;ServerSocket, bể luồng ExecutorService, ClientHandler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="60" y="310" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f07" value="&lt;b&gt;F07: Giao diện màn hình Client (GUI)&lt;/b&gt;&lt;br&gt;Ô nhập số, nút đoán, tách luồng đọc mạng" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="60" y="380" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f11_13" value="&lt;b&gt;F11, F12, F13: Điều phối ván qua mạng&lt;/b&gt;&lt;br&gt;Mở ván, nhận số đoán, trả gợi ý, công bố thắng" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="60" y="450" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f17_18" value="&lt;b&gt;F17, F18: Hiển thị tra cứu &amp;amp; Ngắt kết nối&lt;/b&gt;&lt;br&gt;Cập nhật bảng điểm/thống kê GUI, dọn tài nguyên" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="60" y="520" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f19" value="&lt;b&gt;F19: Chế độ đoán lần lượt&lt;/b&gt;&lt;br&gt;Xoay vòng lượt đoán bằng hàng đợi ArrayDeque" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="60" y="590" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f02" value="&lt;b&gt;F02: Enum trạng thái &amp;amp; gợi ý&lt;/b&gt;&lt;br&gt;TrangThaiVan (WAITING/PLAYING/FINISHED), GoiY" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="450" y="240" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f03" value="&lt;b&gt;F03: Record lượt đoán &amp;amp; Sealed KetQua&lt;/b&gt;&lt;br&gt;record LuotDoan bất biến, sealed interface KetQua" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="450" y="310" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f04_05" value="&lt;b&gt;F04, F05: Lớp Game đồng bộ &amp;amp; Kiểm thử&lt;/b&gt;&lt;br&gt;synchronized trên ván, kiểm thử 100 luồng đoán" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="450" y="380" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f09_10" value="&lt;b&gt;F09, F10: Sổ trực tuyến &amp;amp; Broadcast&lt;/b&gt;&lt;br&gt;ConcurrentHashMap, khoá kênh ghi PrintWriter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="450" y="450" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f14_15" value="&lt;b&gt;F14, F15: Bảng điểm &amp;amp; Lịch sử đoán&lt;/b&gt;&lt;br&gt;Map điểm (merge, Comparator), Map List&amp;lt;LuotDoan&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="450" y="520" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f16" value="&lt;b&gt;F16: Thống kê bằng Streams API&lt;/b&gt;&lt;br&gt;groupingBy, averagingDouble, IntStream.average" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="450" y="590" width="300" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="f20" value="&lt;b&gt;F20: Giới hạn thời gian mỗi ván&lt;/b&gt;&lt;br&gt;ExecutorService, Future, volatile, tự đóng ván" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+      <mxGeometry x="840" y="240" width="300" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="f21" value="&lt;b&gt;F21: Quản lý nhiều phòng chơi song song&lt;/b&gt;&lt;br&gt;ConcurrentHashMap mã phòng, thứ tự khoá chống deadlock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+      <mxGeometry x="840" y="325" width="300" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_r1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="root" target="b1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_r2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="root" target="b2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_r3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="root" target="b3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_1a" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="b1" target="f01" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_1b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f01" target="f06_08" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_1c" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f06_08" target="f07" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_1d" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f07" target="f11_13" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_1e" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f11_13" target="f17_18" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_1f" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f17_18" target="f19" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_2a" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="b2" target="f02" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_2b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f02" target="f03" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_2c" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f03" target="f04_05" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_2d" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f04_05" target="f09_10" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_2e" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f09_10" target="f14_15" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_2f" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f14_15" target="f16" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_3a" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="b3" target="f20" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e_3b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" source="f20" target="f21" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+  </root>
+</mxGraphModel>
