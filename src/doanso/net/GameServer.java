@@ -1,22 +1,35 @@
 package doanso.net;
 
 import doanso.domain.KetQua;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
-import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class GameServer implements AutoCloseable {
 
+    public static final int CO_BE_LUONG_MAC_DINH = 20;
+
     private final ServerSocket serverSocket;
+    private final int coBeLuong;
+    private final ExecutorService beLuong;
+    private volatile boolean dangChay;
 
     public GameServer(int cong) throws IOException {
+        this(cong, CO_BE_LUONG_MAC_DINH);
+    }
+
+    public GameServer(int cong, int coBeLuong) throws IOException {
         if (cong < 0 || cong > 65535) {
             throw new IllegalArgumentException("Cổng không hợp lệ: " + cong);
         }
+        if (coBeLuong <= 0) {
+            throw new IllegalArgumentException("Cỡ bể luồng phải lớn hơn 0: " + coBeLuong);
+        }
         this.serverSocket = new ServerSocket(cong);
+        this.coBeLuong = coBeLuong;
+        this.beLuong = Executors.newFixedThreadPool(coBeLuong);
+        this.dangChay = true;
     }
 
     public static KetQua<GameServer> thuMoCong(int cong) {
@@ -35,23 +48,34 @@ public class GameServer implements AutoCloseable {
         return serverSocket.getLocalPort();
     }
 
-    public int phucVuMotKhach() throws IOException {
-        try (var clientSocket = serverSocket.accept();
-             var in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
-             var out = new PrintWriter(clientSocket.getOutputStream(), true, StandardCharsets.UTF_8)) {
+    public int getCoBeLuong() {
+        return coBeLuong;
+    }
 
-            int soDongDaXuLy = 0;
-            String dong;
-            while ((dong = in.readLine()) != null) {
-                soDongDaXuLy++;
-                var phanHoi = xuLyDongLenh(dong);
-                out.println(phanHoi);
-                if ("BYE".equals(phanHoi)) {
+    public boolean daDongBeLuong() {
+        return beLuong.isShutdown();
+    }
+
+    public int phucVuMotKhach() throws IOException {
+        var clientSocket = serverSocket.accept();
+        var handler = new ClientHandler(clientSocket, this);
+        return handler.phucVu();
+    }
+
+    public int vongLapChapNhanKetNoi() {
+        int soKetNoi = 0;
+        while (dangChay && !serverSocket.isClosed()) {
+            try {
+                var clientSocket = serverSocket.accept();
+                soKetNoi++;
+                beLuong.submit(new ClientHandler(clientSocket, this));
+            } catch (IOException e) {
+                if (!dangChay || serverSocket.isClosed()) {
                     break;
                 }
             }
-            return soDongDaXuLy;
         }
+        return soKetNoi;
     }
 
     public String xuLyDongLenh(String dongTho) {
@@ -76,6 +100,8 @@ public class GameServer implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
+        dangChay = false;
+        beLuong.shutdown();
         if (!serverSocket.isClosed()) {
             serverSocket.close();
         }
