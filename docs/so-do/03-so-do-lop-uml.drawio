@@ -1,0 +1,53 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="c_ketqua" value="&lt;b&gt;&amp;lt;&amp;lt;sealed interface&amp;gt;&amp;gt; KetQua&amp;lt;T&amp;gt;&lt;/b&gt;&lt;hr&gt;permits ThanhCong, ThatBai&lt;br&gt;+ isThanhCong(): boolean" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="130" y="25" width="250" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_thanhcong" value="&lt;b&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt; ThanhCong&amp;lt;T&amp;gt;&lt;/b&gt;&lt;hr&gt;+ duLieu: T&lt;br&gt;+ thongDiep: String" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="30" y="165" width="205" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_thatbai" value="&lt;b&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt; ThatBai&amp;lt;T&amp;gt;&lt;/b&gt;&lt;hr&gt;+ maLoi: String&lt;br&gt;+ lyDo: String" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="265" y="165" width="205" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_trangthai" value="&lt;b&gt;&amp;lt;&amp;lt;enum&amp;gt;&amp;gt; TrangThaiVan&lt;/b&gt;&lt;hr&gt;WAITING, PLAYING, FINISHED&lt;br&gt;+ coTheDoan(): boolean" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="510" y="165" width="230" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_goiy" value="&lt;b&gt;&amp;lt;&amp;lt;enum&amp;gt;&amp;gt; GoiY&lt;/b&gt;&lt;hr&gt;LOWER, HIGHER, CORRECT&lt;br&gt;+ soSanh(doan: int, dich: int): GoiY" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="780" y="25" width="260" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_luotdoan" value="&lt;b&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt; LuotDoan&lt;/b&gt;&lt;hr&gt;+ nguoiChoi: String; + soDoan: int&lt;br&gt;+ thoiDiem: LocalDateTime&lt;br&gt;+ ketQuaGoiY: GoiY&lt;br&gt;+ LuotDoan { compact validation }" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="780" y="160" width="260" height="115" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_phong" value="&lt;b&gt;PhongChoi&lt;/b&gt;&lt;hr&gt;- maPhong: final String&lt;br&gt;- vanHienTai: Game&lt;br&gt;- khoDuLieu: final KhoDuLieu&lt;br&gt;- dsOnline: ConcurrentHashMap&amp;lt;String, PrintWriter&amp;gt;&lt;br&gt;- henGioFuture: Future&amp;lt;?&amp;gt;&lt;hr&gt;+ thamGia(ten: String, out: PrintWriter): KetQua&amp;lt;Void&amp;gt;&lt;br&gt;+ batDauVanMoi(min: int, max: int, giay: int): KetQua&amp;lt;Game&amp;gt;&lt;br&gt;+ xuLyLuotDoan(ten: String, so: int): KetQua&amp;lt;LuotDoan&amp;gt;&lt;br&gt;+ broadcast(thongDiep: String): void" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="30" y="320" width="330" height="240" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_game" value="&lt;b&gt;Game (Ván chơi đồng bộ)&lt;/b&gt;&lt;hr&gt;- maVan, soBiMat, min, max: final int&lt;br&gt;- trangThai: TrangThaiVan&lt;br&gt;- nguoiThang: String&lt;br&gt;- dsLuotDoan: List&amp;lt;LuotDoan&amp;gt;&lt;br&gt;- hangDoiLuot: Deque&amp;lt;String&amp;gt;&lt;hr&gt;+ synchronized moVan(): KetQua&amp;lt;Void&amp;gt;&lt;br&gt;+ synchronized doanSo(ten: String, so: int): KetQua&amp;lt;LuotDoan&amp;gt;&lt;br&gt;+ synchronized dongVanHetGio(): KetQua&amp;lt;String&amp;gt;&lt;br&gt;+ synchronized getNguoiThang(): Optional&amp;lt;String&amp;gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="410" y="320" width="330" height="240" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_khodulieu" value="&lt;b&gt;KhoDuLieu (Lưu trữ &amp;amp; Streams)&lt;/b&gt;&lt;hr&gt;- bangDiem: ConcurrentHashMap&amp;lt;String, Integer&amp;gt;&lt;br&gt;- lichSu: Map&amp;lt;String, List&amp;lt;LuotDoan&amp;gt;&amp;gt;&lt;hr&gt;+ congDiem(ten: String): int&lt;br&gt;+ synchronized ghiLichSu(luot: LuotDoan): void&lt;br&gt;+ synchronized layLichSu(ten: String): List&amp;lt;LuotDoan&amp;gt;&lt;br&gt;+ bangXepHang(): List&amp;lt;Map.Entry&amp;lt;String, Integer&amp;gt;&amp;gt;&lt;br&gt;+ tinhTrungBinhTheoNguoi(): Map&amp;lt;String, Double&amp;gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="780" y="320" width="320" height="240" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_server" value="&lt;b&gt;GameServer&lt;/b&gt;&lt;hr&gt;- port: final int&lt;br&gt;- pool: ExecutorService&lt;br&gt;- dsPhong: ConcurrentHashMap&amp;lt;String, PhongChoi&amp;gt;&lt;hr&gt;+ start(): void&lt;br&gt;+ layHoacTaoPhong(ma: String): PhongChoi" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="30" y="615" width="330" height="165" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_handler" value="&lt;b&gt;ClientHandler implements Runnable&lt;/b&gt;&lt;hr&gt;- socket: final Socket&lt;br&gt;- server: final GameServer&lt;br&gt;- tenNguoiChoi: String&lt;br&gt;- phongHienTai: PhongChoi&lt;hr&gt;+ run(): void&lt;br&gt;- xuLyLenh(dong: String): void" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="410" y="615" width="330" height="165" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_clientui" value="&lt;b&gt;ClientUI (Swing JFrame)&lt;/b&gt;&lt;hr&gt;- socket: Socket&lt;br&gt;- in: BufferedReader; - out: PrintWriter&lt;hr&gt;+ ketNoi(host: String, port: int, ten: String): void&lt;br&gt;+ guiSoDoan(so: String): void&lt;br&gt;- luongDocMang(): void" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="780" y="615" width="320" height="165" as="geometry"/>
+    </mxCell>
+    <mxCell id="rel_kq1" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=block;endFill=0;defaultLabelBackgroundColor=page;" edge="1" source="c_thanhcong" target="c_ketqua" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="rel_kq2" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=block;endFill=0;defaultLabelBackgroundColor=page;" edge="1" source="c_thatbai" target="c_ketqua" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="rel_ld_gy" value="chứa" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="c_luotdoan" target="c_goiy" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="rel_g_tt" value="trạng thái" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="c_game" target="c_trangthai" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="rel_g_ld" value="1..* lượt đoán" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="c_khodulieu" target="c_luotdoan" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="rel_p_g" value="quản lý ván" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="c_phong" target="c_game" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="rel_g_kho" value="ghi lịch sử &amp;amp; điểm" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="c_game" target="c_khodulieu" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="rel_s_p" value="1..* phòng" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="c_server" target="c_phong" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="rel_s_h" value="tạo &amp;amp; chạy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="c_server" target="c_handler" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="rel_h_p" value="điều phối" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;defaultLabelBackgroundColor=page;" edge="1" source="c_handler" target="c_game" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="rel_ui_h" value="TCP Socket (F01)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;defaultLabelBackgroundColor=page;" edge="1" source="c_clientui" target="c_handler" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+  </root>
+</mxGraphModel>
