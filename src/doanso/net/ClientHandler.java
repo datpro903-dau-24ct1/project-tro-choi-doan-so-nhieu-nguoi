@@ -7,10 +7,12 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+// Phục vụ F08, F09, F10: quản lý kết nối của một client, ghi nhận tên và dọn dẹp khi ngắt
 public class ClientHandler implements Runnable {
 
     private final Socket clientSocket;
     private final GameServer server;
+    private String tenNguoiChoi;
 
     public ClientHandler(Socket clientSocket, GameServer server) {
         if (clientSocket == null || server == null) {
@@ -18,6 +20,7 @@ public class ClientHandler implements Runnable {
         }
         this.clientSocket = clientSocket;
         this.server = server;
+        this.tenNguoiChoi = null;
     }
 
     @Override
@@ -25,7 +28,12 @@ public class ClientHandler implements Runnable {
         try {
             phucVu();
         } catch (IOException e) {
-            // Kết nối client đứt đột ngột hoặc đóng giữa chừng: bỏ qua êm ái để không làm chết luồng bể
+            // Kết nối client đứt đột ngột hoặc đóng giữa chừng: bỏ qua êm ái
+        } finally {
+            if (tenNguoiChoi != null) {
+                server.huyNguoiChoi(tenNguoiChoi);
+            }
+            server.huySocketClient(clientSocket);
         }
     }
 
@@ -39,8 +47,11 @@ public class ClientHandler implements Runnable {
             while ((dong = in.readLine()) != null) {
                 soDongDaXuLy++;
                 try {
-                    var phanHoi = server.xuLyDongLenh(dong);
+                    var phanHoi = server.xuLyDongLenh(dong, out, tenNguoiChoi);
                     out.println(phanHoi);
+                    if (phanHoi.startsWith("OK JOIN ")) {
+                        this.tenNguoiChoi = phanHoi.substring("OK JOIN ".length()).strip();
+                    }
                     if ("BYE".equals(phanHoi)) {
                         break;
                     }
@@ -50,6 +61,16 @@ public class ClientHandler implements Runnable {
                 }
             }
             return soDongDaXuLy;
+        } finally {
+            if (tenNguoiChoi != null) {
+                server.huyNguoiChoi(tenNguoiChoi);
+                tenNguoiChoi = null;
+            }
+            server.huySocketClient(clientSocket);
         }
+    }
+
+    public String getTenNguoiChoi() {
+        return tenNguoiChoi;
     }
 }
