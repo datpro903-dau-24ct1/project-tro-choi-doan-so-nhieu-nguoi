@@ -126,6 +126,14 @@ public class Game {
         return Optional.ofNullable(nguoiThang);
     }
 
+    public synchronized boolean daCoNguoiThang() {
+        return nguoiThang != null && trangThai == TrangThaiVan.FINISHED;
+    }
+
+    public synchronized int getSoLuotDoan() {
+        return dsLuotDoan.size();
+    }
+
     public synchronized List<LuotDoan> getDanhSachLuotDoan() {
         return new ArrayList<>(dsLuotDoan);
     }
