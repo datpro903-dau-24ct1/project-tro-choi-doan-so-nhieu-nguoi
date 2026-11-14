@@ -1,4 +1,4 @@
-package vn.dau.cntt.doanso.domain;
+package doanso.domain;
 
 public enum TrangThaiVan {
     WAITING(false),

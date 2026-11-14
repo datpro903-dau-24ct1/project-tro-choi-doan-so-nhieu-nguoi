@@ -1,4 +1,4 @@
-package vn.dau.cntt.doanso.domain;
+package doanso.domain;
 
 public enum GoiY {
     LOWER("Nhỏ hơn (Số bí mật nhỏ hơn số bạn đoán)"),

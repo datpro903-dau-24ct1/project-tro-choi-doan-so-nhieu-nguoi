@@ -1,4 +1,4 @@
-package vn.dau.cntt.doanso.domain;
+package doanso.domain;
 
 import java.time.LocalDateTime;
 

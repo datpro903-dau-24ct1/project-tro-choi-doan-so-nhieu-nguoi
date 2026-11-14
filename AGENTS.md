@@ -69,7 +69,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## Dự án
 
 - **Đề tài & Tài liệu:** Đề 30 "Trò chơi đoán số nhiều người" trong `De_30_Tro_choi_doan_so_nhieu_nguoi.md` (`de30.md`); bảng chức năng tại `docs/danh-sach-chuc-nang.md`; các sơ đồ thiết kế tại `docs/so-do/`.
-- **Cấu trúc package và kiến trúc các tầng:** Tổ chức mã nguồn trong `src/` (gói gốc `vn.dau.cntt.doanso`), kiểm thử trong `test/`, chia làm 3 tầng:
+- **Cấu trúc package và kiến trúc các tầng:** Tổ chức mã nguồn trong `src/` (gói gốc `doanso`), kiểm thử trong `test/`, chia làm 3 tầng:
   1. **Tầng Giao diện & Mạng (`ui`, `net`):** `ClientUI`, `GameServer`, `ClientHandler`.
   2. **Tầng Nghiệp vụ (`domain`, `service`):** `Game`, `PhongChoi`, `ThongKeService`, các `record`/`enum` (`LuotDoan`, `TrangThaiVan`, `GoiY`). **Tầng nghiệp vụ hoàn toàn không phụ thuộc vào giao diện hay mạng** để kiểm thử độc lập.
   3. **Tầng Lưu trữ (`repo`):** `KhoDuLieu` (`KhoBangDiem`, `KhoLichSuDoan`, `SoNguoiChoiOnline`).

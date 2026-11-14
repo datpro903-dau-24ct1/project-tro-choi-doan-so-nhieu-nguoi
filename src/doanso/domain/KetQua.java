@@ -1,4 +1,4 @@
-package vn.dau.cntt.doanso.domain;
+package doanso.domain;
 
 public sealed interface KetQua<T> permits KetQua.ThanhCong, KetQua.ThatBai {
 
