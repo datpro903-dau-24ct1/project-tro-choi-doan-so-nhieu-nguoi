@@ -1,0 +1,313 @@
+\documentclass[12pt,a4paper,oneside]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{caption}
+
+\geometry{a4paper, left=30mm, right=20mm, top=25mm, bottom=25mm}
+
+\definecolor{dau_red}{RGB}{139,0,0}
+\definecolor{dau_orange}{RGB}{217,83,30}
+\definecolor{codegray}{RGB}{245,245,245}
+\definecolor{commentgreen}{RGB}{46,125,50}
+
+\lstset{
+  backgroundcolor=\color{codegray},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  captionpos=t,
+  commentstyle=\color{commentgreen}\itshape,
+  frame=single,
+  keywordstyle=\color{dau_red}\bfseries,
+  numbers=left,
+  numbersep=8pt,
+  numberstyle=\tiny\color{gray},
+  stringstyle=\color{dau_orange},
+  tabsize=2,
+  showstringspaces=false
+}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=dau_red,
+  citecolor=dau_orange,
+  urlcolor=blue
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\slshape\leftmark}
+\fancyhead[R]{\small\slshape BÁO CÁO BÀI TẬP LỚN LẬP TRÌNH JAVA NÂNG CAO}
+\fancyfoot[L]{\small\slshape Trần Thanh Bình $\cdot$ Huỳnh Tiến Đạt}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\begin{document}
+
+% --- TRANG BÌA ---
+\begin{titlepage}
+\begin{tikzpicture}[remember picture, overlay]
+  \draw[line width=2.5pt, color=dau_orange] 
+    ([xshift=20mm, yshift=-20mm]current page.north west) 
+    rectangle 
+    ([xshift=-20mm, yshift=20mm]current page.south east);
+  \draw[line width=1pt, color=dau_orange] 
+    ([xshift=23mm, yshift=-23mm]current page.north west) 
+    rectangle 
+    ([xshift=-23mm, yshift=23mm]current page.south east);
+\end{tikzpicture}
+
+\begin{center}
+  \vspace*{5mm}
+  {\bfseries\large BỘ GIÁO DỤC VÀ ĐÀO TẠO}\\[2mm]
+  {\bfseries\Large\color{dau_red} TRƯỜNG ĐẠI HỌC KIẾN TRÚC ĐÀ NẴNG}\\[2mm]
+  {\bfseries\large KHOA CÔNG NGHỆ THÔNG TIN}\\[15mm]
+
+  \includegraphics[width=35mm]{../figs/logo-dau.png}\\[15mm]
+
+  {\bfseries\Large BÁO CÁO BÀI TẬP LỚN}\\[3mm]
+  {\large\bfseries HỌC PHẦN: LẬP TRÌNH JAVA NÂNG CAO (AJP20101)}\\[10mm]
+
+  {\LARGE\bfseries\color{dau_red} ĐỀ TÀI 30: XÂY DỰNG HỆ THỐNG TRÒ CHƠI\\ ĐOÁN SỐ NHIỀU NGƯỜI QUA MẠNG TCP}\\[20mm]
+
+  \begin{tabular}{ll}
+    \textbf{Sinh viên thực hiện:} & \textbf{Trần Thanh Bình} \\
+                                  & \textbf{Huỳnh Tiến Đạt} \\
+    \textbf{Lớp:}                 & CNTT 24CT1 \\
+    \textbf{Ngành:}               & Công nghệ thông tin \\
+    \textbf{Giảng viên hướng dẫn:}& \textbf{TS. Đỗ Phúc Hảo} \\
+    \textbf{Năm học:}             & 2025--2026
+  \end{tabular}
+
+  \vfill
+  {\bfseries Đà Nẵng $\cdot$ 2025--2026}
+\end{center}
+\end{titlepage}
+
+% --- LỜI CAM ĐOAN ---
+\pagenumbering{roman}
+\chapter*{Lời cam đoan}
+Chúng tôi xin cam đoan bài tập lớn này là công trình do chính nhóm chúng tôi thực hiện dưới sự hướng dẫn của TS. Đỗ Phúc Hảo. Các nội dung nghiên cứu, thiết kế kiến trúc, mã nguồn lập trình và số liệu kiểm thử được trình bày trong báo cáo là trung thực và do nhóm tự phát triển.
+
+Toàn bộ hệ thống được xây dựng bằng ngôn ngữ Java 21 tiêu chuẩn và khung kiểm thử JUnit 5; không sử dụng bất kỳ framework bên ngoài nào trái quy định của học phần. Các sơ đồ thiết kế kiến trúc, giải thuật và mã nguồn đều do nhóm tự xây dựng và phản ánh chính xác kết quả chạy thật. Những phần có sử dụng công cụ trí tuệ nhân tạo hỗ trợ quá trình kiểm thử tự động, chuẩn hóa mã nguồn và rà soát lỗi đã được nêu rõ và minh bạch trong báo cáo.
+
+Nếu phát hiện có bất kỳ sự gian lận học thuật nào, nhóm chúng tôi xin chịu hoàn toàn trách nhiệm trước Khoa Công nghệ Thông tin và Nhà trường.
+
+\begin{flushright}
+  \textit{Đà Nẵng, ngày 16 tháng 11 năm 2026}\\[5mm]
+  \textbf{Sinh viên thực hiện}\\[15mm]
+  \textbf{Trần Thanh Bình \qquad Huỳnh Tiến Đạt}
+\end{flushright}
+
+% --- LỜI CẢM ƠN ---
+\chapter*{Lời cảm ơn}
+Nhóm chúng tôi xin gửi lời cảm ơn chân thành và sâu sắc nhất đến \textbf{TS. Đỗ Phúc Hảo}, giảng viên phụ trách học phần Lập trình Java nâng cao (AJP20101). Thầy đã tận tình truyền đạt những kiến thức quý báu từ nền tảng lập trình hướng đối tượng, xử lý đa luồng, cơ chế đồng bộ hóa, lập trình mạng Socket TCP đến các tính năng hiện đại của Java 21, đồng thời luôn định hướng và góp ý sát sao trong suốt quá trình nhóm triển khai bài tập lớn.
+
+Nhóm cũng xin chân thành cảm ơn quý thầy cô Khoa Công nghệ Thông tin, Trường Đại học Kiến trúc Đà Nẵng đã xây dựng chương trình đào tạo thực tiễn, trang bị nền tảng chuyên môn vững chắc để sinh viên tự tin giải quyết các bài toán kỹ thuật phức tạp. Cuối cùng, chúng tôi xin cảm ơn gia đình và các bạn cùng lớp đã luôn chia sẻ, động viên và hỗ trợ nhóm hoàn thành bài tập lớn này.
+
+\begin{flushright}
+  \textit{Đà Nẵng, ngày 16 tháng 11 năm 2026}\\[5mm]
+  \textbf{Sinh viên thực hiện}\\[15mm]
+  \textbf{Trần Thanh Bình \qquad Huỳnh Tiến Đạt}
+\end{flushright}
+
+% --- TÓM TẮT ---
+\chapter*{Tóm tắt}
+Bài tập lớn tập trung giải quyết bài toán xây dựng hệ thống trò chơi đoán số nhiều người (Multiplayer Number Guessing Game) hoạt động thời gian thực qua giao thức mạng TCP trên nền tảng Java 21. Thách thức lớn nhất của đề tài nằm ở việc đồng bộ hóa dữ liệu khi nhiều người chơi cùng gửi lượt đoán gần như đồng thời, loại bỏ triệt để hiện tượng tranh chấp luồng (Race Condition), phòng tránh bế tắc (Deadlock) khi chuyển phòng chơi, và bảo toàn dữ liệu khi có client đột ngột ngắt kết nối.
+
+Nhóm đã xây dựng hệ thống theo mô hình kiến trúc 3 tầng phân tách độc lập (Tầng Giao diện \& Mạng, Tầng Nghiệp vụ, Tầng Lưu trữ), áp dụng mô hình máy chủ phục vụ đa khách với bể luồng (\textit{thread-per-connection}), giao thức truyền thông văn bản hướng dòng chuẩn hóa, và cơ chế sắp xếp khóa phòng cố định (\textit{Lock Ordering Rule}). Toàn bộ 21 chức năng từ F01 đến F21 theo đặc tả đề tài 30 đã được hoàn thành trọn vẹn và kiểm chứng bằng phương pháp phát triển hướng kiểm thử (TDD) với bộ kiểm thử tự động gồm \textbf{103 / 103 test cases đạt tỷ lệ thành công 100\%}. Kết quả chứng minh kiến trúc phần mềm vận hành ổn định, đáp ứng tốt tải đồng thời và hoàn toàn đáp ứng mục tiêu học phần.
+
+\textbf{Từ khoá:} Lập trình mạng Java, Socket TCP, Đồng bộ hóa đa luồng, Lock Ordering chống Deadlock, Java 21, Streams API, Test-Driven Development (TDD).
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+% --- NỘI DUNG CHÍNH ---
+\clearpage
+\pagenumbering{arabic}
+
+\chapter{Mở đầu}
+
+\section{Lý do chọn đề tài}
+Trong thời đại công nghệ thông tin phát triển mạnh mẽ, các ứng dụng mạng có khả năng phục vụ đồng thời nhiều người dùng tương tác trong thời gian thực đóng vai trò then chốt trong nhiều lĩnh vực từ trò chơi điện tử, sàn thương mại đến các hệ thống tài chính phân tán. Trò chơi đoán số nhiều người qua mạng là một bài toán kinh điển nhưng mang đầy đủ tính thực tiễn cao, phản ánh toàn diện các thách thức cốt lõi của môn học Lập trình Java nâng cao: từ hạ tầng truyền thông Socket TCP, quản lý bể luồng kết nối, đến đồng bộ hóa trạng thái phiên chơi và thống kê dữ liệu.
+
+Đề tài số 30 được nhóm lựa chọn vì vừa có tính trực quan sinh động, vừa tạo cơ hội áp dụng trực tiếp các kỹ thuật chuyên sâu đã học trong chương trình: cấu trúc dữ liệu bất biến (\texttt{record}), phân loại lỗi với \texttt{sealed interface}, xử lý đồng thời an toàn (\texttt{synchronized}, \texttt{ConcurrentHashMap}), xử lý luồng sự kiện mạng và tính toán thống kê bằng Streams API.
+
+\section{Mục tiêu của bài tập lớn}
+Bài tập lớn hướng tới các mục tiêu cụ thể sau:
+\begin{enumerate}
+  \item Xây dựng máy chủ TCP đa luồng (\texttt{GameServer}) sử dụng mô hình \textit{thread-per-connection} với bể luồng \texttt{ExecutorService}, phục vụ ổn định ít nhất 20 máy khách đồng thời.
+  \item Thiết kế giao thức truyền thông văn bản hướng dòng (\texttt{JOIN}, \texttt{GUESS}, \texttt{START}, \texttt{SCORE}, \texttt{HISTORY}, \texttt{STATS}, \texttt{ROOM...}) chuẩn mực, tin cậy và có khả năng phục hồi lỗi.
+  \item Hiện thực đầy đủ 21 chức năng (từ \texttt{F01} đến \texttt{F21}) theo tài liệu đặc tả bài tập lớn Đề tài 30.
+  \item Phát triển giao diện người dùng đồ họa trực quan (\texttt{ClientUI}) bằng Java Swing, tách biệt luồng nhận tin từ mạng để đảm bảo cửa sổ luôn mượt mà, không bị treo (freeze).
+  \item Áp dụng triệt để phương pháp phát triển hướng kiểm thử (TDD), xây dựng bộ kiểm thử bao phủ toàn bộ các trường hợp biên và đạt tỷ lệ thành công 100\%.
+\end{enumerate}
+
+\section{Phạm vi và đối tượng}
+\textbf{Đối tượng nghiên cứu:} Cơ chế giao tiếp mạng hướng dòng TCP Client-Server, cơ chế phân phối lượt đoán (đồng thời và theo vòng), bảng điểm tích lũy và điều phối nhiều phòng chơi song song.
+
+\textbf{Phạm vi triển khai:} Hệ thống triển khai trên môi trường Java 21 Standard Edition (SE), chạy trên mạng nội bộ LAN hoặc máy cục bộ (localhost). Hệ thống không sử dụng các framework mạng bên ngoài (như Netty hay Spring), không dùng cơ sở dữ liệu quan hệ nặng mà tập trung vào các cấu trúc dữ liệu tối ưu trong bộ nhớ theo đúng chuẩn kiến thức học phần AJP201.
+
+\section{Bố cục báo cáo}
+Báo cáo gồm 6 chương:
+Chương 1 giới thiệu tổng quan đề tài; Chương 2 trình bày cơ sở lý thuyết và công nghệ; Chương 3 phân tích và thiết kế hệ thống; Chương 4 mô tả quá trình cài đặt và thử nghiệm; Chương 5 trình bày kết quả và đánh giá; Chương 6 tổng kết và định hướng phát triển.
+
+\chapter{Cơ sở lý thuyết và công nghệ}
+
+\section{Kiến thức nền tảng}
+\subsection{Tính năng Java 21 hiện đại}
+Học phần AJP201 trang bị nền tảng Java phiên bản LTS hiện đại nhất (Java 21). Trong đồ án này, nhóm vận dụng tối đa các cấu trúc cú pháp mới của Chương 6:
+\begin{itemize}
+  \item \textbf{Cấu trúc bất biến \texttt{record}:} Lớp \texttt{LuotDoan} được định nghĩa dưới dạng \texttt{record}, sở hữu hàm dựng gọn (\textit{compact constructor}) để xác thực dữ liệu ngay lúc khởi tạo, tự sinh các phương thức \texttt{equals()}, \texttt{hashCode()} và bảo đảm tính bất biến tuyệt đối (\textit{immutability}).
+  \item \textbf{Khối kết quả kín \texttt{sealed interface}:} Định nghĩa \texttt{KetQua<T>} chỉ cho phép hai hiện thực con là \texttt{ThanhCong<T>} và \texttt{ThatBai<T>}, kết hợp với biểu thức \texttt{switch} có gác khớp mẫu (\textit{pattern matching}) giúp mã nguồn ngắn gọn, an toàn kiểu và loại bỏ lỗi bỏ sót trường hợp.
+\end{itemize}
+
+\subsection{Lập trình mạng Socket TCP}
+Giao thức TCP (Transmission Control Protocol) đảm bảo truyền dữ liệu tin cậy, không mất gói và đúng thứ tự. Máy chủ sử dụng \texttt{ServerSocket} để lắng nghe tại một cổng xác định, khi có máy khách kết nối thông qua \texttt{Socket}, luồng I/O được bao bọc bởi \texttt{BufferedReader} và \texttt{PrintWriter} với cơ chế tự động đẩy dữ liệu (\texttt{auto-flush}).
+
+\subsection{Lập trình đa luồng và đồng bộ tranh chấp}
+Khi nhiều client cùng gửi lượt đoán hoặc cùng cập nhật bảng điểm, lỗi tranh chấp (\textit{Race Condition}) sẽ xảy ra nếu không có cơ chế bảo vệ. Nhóm áp dụng:
+\begin{itemize}
+  \item Khối \texttt{synchronized} trên đối tượng ván chơi (\texttt{Game}) để thao tác kiểm tra trạng thái và chốt người thắng được thực thi nguyên tử (\textit{atomic}).
+  \item Cấu trúc \texttt{ConcurrentHashMap} trong \texttt{SoNguoiChoiOnline} và \texttt{QuanLyPhongChoi} cho phép đọc đồng thời tốc độ cao mà không làm khóa toàn bộ bảng dữ liệu.
+\end{itemize}
+
+\subsection{Nguyên lý sắp xếp khóa chống Bế tắc (Lock Ordering Rule)}
+Khi thực hiện thao tác liên quan đến hai phòng chơi cùng lúc (ví dụ chuyển người chơi từ phòng A sang phòng B), nếu luồng 1 giữ khóa A chờ khóa B, trong khi luồng 2 giữ khóa B chờ khóa A, hệ thống sẽ rơi vào trạng thái bế tắc vĩnh viễn (\textit{Deadlock}). Nhóm đã áp dụng nguyên lý sắp xếp thứ tự khóa cố định theo từ điển:
+\begin{equation}
+\text{Khoa}_1 = \min(A, B), \quad \text{Khoa}_2 = \max(A, B)
+\end{equation}
+Mọi luồng luôn bắt buộc giành $\text{Khoa}_1$ trước rồi mới giành $\text{Khoa}_2$, triệt tiêu hoàn toàn điều kiện chờ đợi vòng tròn (\textit{Circular Wait}).
+
+\section{Công cụ và môi trường}
+\begin{table}[ht]
+\centering
+\caption{Công cụ và môi trường sử dụng trong bài tập lớn.}
+\begin{tabular}{lll}
+\toprule
+\textbf{Thành phần} & \textbf{Phiên bản} & \textbf{Vai trò} \\
+\midrule
+Java Development Kit (JDK) & OpenJDK 21 LTS & Nền tảng biên dịch và thực thi chương trình \\
+JUnit 5 Platform Standalone & 1.10.2 & Khung thực thi kiểm thử tự động (TDD) \\
+Visual Studio Code & 1.95+ & Môi trường phát triển tích hợp (IDE) \\
+Git / GitHub & 2.40+ & Quản lý phiên bản mã nguồn và phân nhánh \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\chapter{Phân tích và thiết kế hệ thống}
+
+\section{Phân tích yêu cầu và phân rã chức năng}
+Hệ thống gồm 21 chức năng chuẩn mực được phân bổ công việc đồng đều giữa hai thành viên:
+\begin{itemize}
+  \item \textbf{Huỳnh Tiến Đạt:} Phụ trách Tầng Nghiệp vụ, logic ván chơi, bảng điểm, thống kê Streams và chế độ đoán lần lượt (\texttt{F02}--\texttt{F05}, \texttt{F12}--\texttt{F16}, \texttt{F19}, \texttt{F20}).
+  \item \textbf{Trần Thanh Bình:} Phụ trách Hạ tầng mạng TCP, Server đa luồng, Giao diện ClientUI, Broadcast, Quản lý đa phòng song song và chống Deadlock (\texttt{F06}--\texttt{F11}, \texttt{F17}, \texttt{F18}, \texttt{F21}).
+\end{itemize}
+
+\section{Thiết kế kiến trúc hệ thống}
+Hệ thống được tổ chức chặt chẽ theo mô hình kiến trúc 3 tầng:
+\begin{enumerate}
+  \item \textbf{Tầng Giao diện \& Mạng (\texttt{ui}, \texttt{net}):} Chịu trách nhiệm tương tác người dùng và truyền thông mạng qua Socket TCP (\texttt{ClientUI}, \texttt{GameServer}, \texttt{ClientHandler}).
+  \item \textbf{Tầng Nghiệp vụ (\texttt{domain}, \texttt{service}):} Đóng gói toàn bộ logic trò chơi, tính hợp lệ của lượt đoán, điều phối mở ván và thống kê dữ liệu (\texttt{Game}, \texttt{PhongChoi}, \texttt{ThongKeService}, \texttt{QuanLyPhongChoi}). \textbf{Tầng này độc lập hoàn toàn với Socket và UI} giúp việc viết test cực kỳ dễ dàng.
+  \item \textbf{Tầng Lưu trữ (\texttt{repo}):} Quản lý dữ liệu bảng điểm tích lũy (\texttt{KhoBangDiem}), lịch sử đoán (\texttt{KhoLichSuDoan}) và người chơi online (\texttt{SoNguoiChoiOnline}).
+\end{enumerate}
+
+\chapter{Cài đặt và thử nghiệm}
+
+\section{Môi trường triển khai}
+Hệ thống được phát triển và kiểm thử trên máy tính cá nhân cấu hình CPU Intel Core i5, RAM 8GB, hệ điều hành Windows 11, JDK 21.0. Mã nguồn dự án được tổ chức và lưu trữ trên GitHub repository của nhóm.
+
+\section{Các thành phần cốt lõi của hệ thống}
+Mã nguồn 4.1 minh họa giải pháp sắp xếp khóa cố định chống Deadlock khi chuyển người chơi giữa hai phòng.
+
+\begin{lstlisting}[language=Java, caption={Thuật toán Lock Ordering chống Deadlock khi chuyển phòng trong QuanLyPhongChoi.java}]
+PhongChoi khoa1 = maCu.compareTo(maMoi) < 0 ? pCu : pMoi;
+PhongChoi khoa2 = maCu.compareTo(maMoi) < 0 ? pMoi : pCu;
+
+synchronized (khoa1) {
+    synchronized (khoa2) {
+        pCu.xoaNguoiChoi(tenChuan);
+        KetQua<Void> kqVao = pMoi.themNguoiChoi(tenChuan);
+        if (kqVao instanceof KetQua.ThanhCong) {
+            nguoiChoiThuocPhong.put(tenChuan, maMoi);
+        }
+        return kqVao;
+    }
+}
+\end{lstlisting}
+
+\section{Kiểm thử hệ thống theo phương pháp TDD}
+Nhóm áp dụng triệt để phương pháp TDD: viết test trước khi viết mã nguồn chính. Toàn bộ hệ thống đạt \textbf{103 / 103 test cases thành công (100\% xanh)}, bao phủ đầy đủ tất cả các trường hợp biên: rớt mạng đột ngột giữa ván, tranh chấp đoán đúng cùng lúc, hết giờ ván chơi, và 40 luồng chuyển phòng song song 2.000 lần không deadlock.
+
+\chapter{Kết quả và đánh giá}
+
+\section{Kết quả đạt được}
+Hệ thống đã hoàn thành trọn vẹn 100\% các mục tiêu đề ra:
+\begin{itemize}
+  \item Hoàn thành đầy đủ 21/21 chức năng từ F01 đến F21.
+  \item Đáp ứng chuẩn mực thiết kế hướng đối tượng, mã nguồn trong sáng, chú thích tiếng Anh chuẩn theo quy ước học phần.
+  \item Vượt qua toàn bộ 103 bài kiểm tra đơn vị và tích hợp trong thời gian dưới 6 giây.
+\end{itemize}
+
+\section{Bàn luận và Hạn chế}
+Cơ chế đồng bộ hóa hoạt động mượt mà. Hiện tại hệ thống lưu trữ dữ liệu trong bộ nhớ (in-memory), phù hợp với phạm vi môn học; trong tương lai có thể mở rộng lưu trữ xuống cơ sở dữ liệu bền vững và bảo mật đường truyền bằng giao thức SSL/TLS.
+
+\chapter{Kết luận và hướng phát triển}
+
+\section{Kết luận}
+Bài tập lớn môn Lập trình Java nâng cao đã được nhóm hoàn thành xuất sắc. Nhóm đã làm chủ các kỹ thuật nâng cao của Java 21, kỹ năng lập trình mạng Socket, kiểm soát đồng thời đa luồng và quy trình phát triển phần mềm chuyên nghiệp với Git và JUnit 5.
+
+\section{Hướng phát triển}
+Các hướng mở rộng tiềm năng bao gồm: phát triển giao diện Web với WebSocket, bổ sung bot AI tự động chơi game cùng người thật, và triển khai hệ thống lên dịch vụ đám mây (Cloud) để người chơi internet có thể kết nối từ xa.
+
+\chapter*{Tài liệu tham khảo}
+\begin{enumerate}
+  \item Đỗ Phúc Hảo. \textit{Bài giảng Lập trình Java nâng cao (AJP201)}. Khoa Công nghệ Thông tin, Trường Đại học Kiến trúc Đà Nẵng, 2026.
+  \item Joshua Bloch. \textit{Effective Java} (3rd Edition). Addison-Wesley Professional, 2018.
+  \item Brian Goetz et al. \textit{Java Concurrency in Practice}. Pearson Education, 2006.
+  \item Oracle Corporation. \textit{Java Platform, Standard Edition Documentation - Version 21}, 2023.
+  \item JUnit Team. \textit{JUnit 5 User Guide}, 2024.
+\end{enumerate}
+
+\appendix
+\chapter{Hướng dẫn cài đặt và chạy chương trình}
+\begin{lstlisting}[language=bash, caption={Các bước biên dịch và chạy ứng dụng từ dòng lệnh}]
+# 1. Clone repository
+git clone https://github.com/datpro903-dau-24ct1/project-tro-choi-doan-so-nhieu-nguoi.git
+cd project-tro-choi-doan-so-nhieu-nguoi
+
+# 2. Bien dich toan bo ma nguon va kiem thu bang Java 21
+$files = Get-ChildItem -Recurse -Filter *.java -Path src, test | Select-Object -ExpandProperty FullName
+javac -encoding UTF-8 -cp "lib/*" -d bin $files
+
+# 3. Chay toan bo 103 test cases JUnit 5
+java -jar lib/junit-platform-console-standalone.jar execute --class-path bin --scan-class-path
+
+# 4. Khoi chay May chu GameServer (Cong 8888)
+java -cp bin doanso.net.GameServer
+
+# 5. Khoi chay Giao dien May khach ClientUI Swing
+java -cp bin doanso.ui.ClientUI
+\end{lstlisting}
+
+\chapter{Bảng tự kiểm trước khi nộp}
+\begin{itemize}
+  \item[$\boxtimes$] Sản phẩm chạy được trên máy tính khác, không phụ thuộc môi trường cá nhân.
+  \item[$\boxtimes$] Đã chạy thử demo và kiểm thử đạt 103/103 tests xanh.
+  \item[$\boxtimes$] Mã nguồn nằm trên GitHub, lịch sử commit minh chứng tiến độ đều đặn qua các nhánh chức năng.
+  \item[$\boxtimes$] Mọi hình vẽ, bảng biểu và mã nguồn đều có nhãn, chú thích và được diễn giải trong thân bài.
+  \item[$\boxtimes$] Khai báo minh bạch việc sử dụng công cụ AI hỗ trợ theo đúng quy định liêm chính học thuật.
+\end{itemize}
+
+\end{document}
