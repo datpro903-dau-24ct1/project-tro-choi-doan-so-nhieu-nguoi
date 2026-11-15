@@ -5,6 +5,7 @@ import doanso.domain.GoiY;
 import doanso.domain.KetQua;
 import doanso.domain.LuotDoan;
 import doanso.domain.TrangThaiVan;
+import doanso.repo.KhoBangDiem;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -25,6 +26,7 @@ public class GameServer implements AutoCloseable {
     private final int coBeLuong;
     private final ExecutorService beLuong;
     private final SoNguoiChoiOnline soOnline;
+    private final KhoBangDiem khoBangDiem;
     private final Set<Socket> dsSocketDangKetNoi;
     private volatile boolean dangChay;
 
@@ -47,6 +49,7 @@ public class GameServer implements AutoCloseable {
         this.coBeLuong = coBeLuong;
         this.beLuong = Executors.newFixedThreadPool(coBeLuong);
         this.soOnline = new SoNguoiChoiOnline();
+        this.khoBangDiem = new KhoBangDiem();
         this.dsSocketDangKetNoi = ConcurrentHashMap.newKeySet();
         this.dangChay = true;
         this.vanHienTai = null;
@@ -79,6 +82,10 @@ public class GameServer implements AutoCloseable {
 
     public SoNguoiChoiOnline getSoOnline() {
         return soOnline;
+    }
+
+    public KhoBangDiem getKhoBangDiem() {
+        return khoBangDiem;
     }
 
     public Optional<Game> getVanHienTai() {
@@ -160,6 +167,7 @@ public class GameServer implements AutoCloseable {
         KetQua<Void> kq = soOnline.dangKy(ten, out);
         if (kq instanceof KetQua.ThanhCong) {
             String tenChuan = ten.strip();
+            khoBangDiem.ghiNhanNguoiChoi(tenChuan);
             synchronized (khoaVan) {
                 if (vanHienTai != null && vanHienTai.getTrangThai() == TrangThaiVan.PLAYING) {
                     vanHienTai.thamGiaVan(tenChuan);
@@ -324,6 +332,7 @@ public class GameServer implements AutoCloseable {
             GoiY gy = luot.ketQuaGoiY();
             return switch (gy) {
                 case CORRECT -> {
+                    khoBangDiem.congDiemThang(luot.nguoiChoi());
                     soOnline.broadcast("INFO NGUOI_THANG " + luot.nguoiChoi() + " " + luot.soDoan());
                     yield "WIN " + luot.soDoan();
                 }
