@@ -6,6 +6,7 @@ import doanso.domain.KetQua;
 import doanso.domain.LuotDoan;
 import doanso.domain.TrangThaiVan;
 import doanso.repo.KhoBangDiem;
+import doanso.repo.KhoLichSuDoan;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -27,6 +28,7 @@ public class GameServer implements AutoCloseable {
     private final ExecutorService beLuong;
     private final SoNguoiChoiOnline soOnline;
     private final KhoBangDiem khoBangDiem;
+    private final KhoLichSuDoan khoLichSuDoan;
     private final Set<Socket> dsSocketDangKetNoi;
     private volatile boolean dangChay;
 
@@ -50,6 +52,7 @@ public class GameServer implements AutoCloseable {
         this.beLuong = Executors.newFixedThreadPool(coBeLuong);
         this.soOnline = new SoNguoiChoiOnline();
         this.khoBangDiem = new KhoBangDiem();
+        this.khoLichSuDoan = new KhoLichSuDoan();
         this.dsSocketDangKetNoi = ConcurrentHashMap.newKeySet();
         this.dangChay = true;
         this.vanHienTai = null;
@@ -86,6 +89,10 @@ public class GameServer implements AutoCloseable {
 
     public KhoBangDiem getKhoBangDiem() {
         return khoBangDiem;
+    }
+
+    public KhoLichSuDoan getKhoLichSuDoan() {
+        return khoLichSuDoan;
     }
 
     public Optional<Game> getVanHienTai() {
@@ -329,6 +336,7 @@ public class GameServer implements AutoCloseable {
                 return "ERROR " + tb.maLoi() + " " + tb.lyDo();
             }
             LuotDoan luot = ((KetQua.ThanhCong<LuotDoan>) kq).duLieu();
+            khoLichSuDoan.ghiNhanLuotDoan(luot);
             GoiY gy = luot.ketQuaGoiY();
             return switch (gy) {
                 case CORRECT -> {
