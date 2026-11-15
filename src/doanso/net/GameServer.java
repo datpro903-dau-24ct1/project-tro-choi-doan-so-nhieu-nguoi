@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 // Phục vụ F06, F08, F09, F10, F11
 public class GameServer implements AutoCloseable {
@@ -335,9 +336,9 @@ public class GameServer implements AutoCloseable {
         return switch (tuKhoa) {
             case "JOIN" -> thamSo.isEmpty() ? "ERROR THIEU_TEN" : "OK JOIN " + thamSo;
             case "GUESS" -> thamSo.isEmpty() ? "ERROR THIEU_SO_DOAN" : "OK GUESS " + thamSo;
-            case "SCORE" -> "OK SCORE";
-            case "HISTORY" -> "OK HISTORY";
-            case "STATS" -> "OK STATS";
+            case "SCORE" -> dinhDangBangDiem();
+            case "HISTORY" -> dinhDangLichSu(thamSo);
+            case "STATS" -> dinhDangThongKe();
             case "QUIT" -> "BYE";
             default -> "ERROR LENH_KHONG_HOP_LE";
         };
@@ -390,8 +391,64 @@ public class GameServer implements AutoCloseable {
                     yield "ERROR " + tb.maLoi() + " " + tb.lyDo();
                 }
             }
+            case "SCORE" -> dinhDangBangDiem();
+            case "HISTORY" -> {
+                String tenXem = thamSo.isEmpty() ? tenNguoiChoiHienTai : thamSo;
+                if (tenXem == null || tenXem.isBlank()) {
+                    yield "ERROR CHUA_DANG_NHAP";
+                }
+                yield dinhDangLichSu(tenXem);
+            }
+            case "STATS" -> dinhDangThongKe();
             default -> ketQuaCoBan;
         };
+    }
+
+    // F17: Định dạng dữ liệu SCORE (Bảng điểm nhiều ván)
+    public String dinhDangBangDiem() {
+        var danhSach = khoBangDiem.layBangXepHang();
+        if (danhSach.isEmpty()) {
+            return "OK SCORE";
+        }
+        String noiDung = danhSach.stream()
+            .map(h -> h.tenNguoiChoi() + ": " + h.diem())
+            .collect(Collectors.joining(", "));
+        return "OK SCORE " + noiDung;
+    }
+
+    // F17: Định dạng dữ liệu HISTORY (Lịch sử đoán mỗi người)
+    public String dinhDangLichSu(String tenCanXem) {
+        if (tenCanXem == null || tenCanXem.isBlank()) {
+            return "OK HISTORY RONG (Chưa có lượt đoán nào)";
+        }
+        String tenChuan = tenCanXem.strip();
+        var dsLuot = khoLichSuDoan.layLichSuCua(tenChuan);
+        if (dsLuot.isEmpty()) {
+            return "OK HISTORY " + tenChuan + " RONG (Chưa có lượt đoán nào)";
+        }
+        String chiTiet = dsLuot.stream()
+            .map(ld -> ld.soDoan() + "->" + ld.ketQuaGoiY().name())
+            .collect(Collectors.joining(", "));
+        return "OK HISTORY " + tenChuan + ": " + chiTiet;
+    }
+
+    // F17: Định dạng dữ liệu STATS (Thống kê hệ thống bằng Streams)
+    public String dinhDangThongKe() {
+        double avgVan;
+        double avgNguoi;
+        int tongLuot;
+        int tongVan;
+        synchronized (khoaVan) {
+            avgVan = thongKeService.tinhTrungBinhSoLuotMoiVan(danhSachCacVan);
+            avgNguoi = thongKeService.tinhTrungBinhTongLuotMoiNguoiCoDoan(khoLichSuDoan);
+            tongLuot = khoLichSuDoan.layTatCaLuotDoan().size();
+            tongVan = danhSachCacVan.size();
+        }
+        return String.format(
+            java.util.Locale.US,
+            "OK STATS trung_binh_van=%.2f trung_binh_nguoi=%.2f tong_luot=%d tong_van=%d",
+            avgVan, avgNguoi, tongLuot, tongVan
+        );
     }
 
     public static int phanTichSoDoan(String thamSo) throws LoiLenhDoanException {

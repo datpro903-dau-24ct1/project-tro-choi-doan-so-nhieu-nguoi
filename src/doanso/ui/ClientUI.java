@@ -254,7 +254,55 @@ public class ClientUI extends JFrame {
             capNhatTrangThai("Số bí mật NHỎ HƠN số bạn vừa đoán.");
         } else if (dong.startsWith("WIN")) {
             capNhatTrangThai("CHÚC MỪNG! BẠN ĐÃ ĐOÁN ĐÚNG!");
+        } else if (dong.startsWith("OK SCORE")) {
+            hienThiBangDiem(dong);
+        } else if (dong.startsWith("OK HISTORY")) {
+            hienThiLichSu(dong);
+        } else if (dong.startsWith("OK STATS")) {
+            hienThiThongKe(dong);
         }
+    }
+
+    // F17: Hiển thị bảng điểm định dạng trên giao diện
+    public void hienThiBangDiem(String dong) {
+        String duLieu = dong.length() > "OK SCORE".length() ? dong.substring("OK SCORE".length()).strip() : "";
+        if (duLieu.isEmpty() || duLieu.contains("RONG")) {
+            themNhatKy("""
+                ================ BẢNG XẾP HẠNG ================
+                (Chưa có người chơi nào ghi điểm)
+                ===============================================""");
+            capNhatTrangThai("Bảng xếp hạng: Chưa có điểm.");
+            return;
+        }
+        StringBuilder sb = new StringBuilder("\n================ BẢNG XẾP HẠNG ================\n");
+        String[] danhSach = duLieu.split(",\\s*");
+        int hang = 1;
+        for (String item : danhSach) {
+            sb.append(String.format("  #%d. %s\n", hang++, item));
+        }
+        sb.append("===============================================\n");
+        themNhatKy(sb.toString());
+        capNhatTrangThai("Đã cập nhật bảng điểm.");
+    }
+
+    // F17: Hiển thị lịch sử đoán số trên giao diện
+    public void hienThiLichSu(String dong) {
+        String duLieu = dong.length() > "OK HISTORY".length() ? dong.substring("OK HISTORY".length()).strip() : "";
+        themNhatKy("""
+            ================ LỊCH SỬ ĐOÁN SỐ ================
+            %s
+            =================================================""".formatted(duLieu.isEmpty() ? "(Trống)" : duLieu));
+        capNhatTrangThai("Đã cập nhật lịch sử đoán.");
+    }
+
+    // F17: Hiển thị thống kê hệ thống trên giao diện
+    public void hienThiThongKe(String dong) {
+        String duLieu = dong.length() > "OK STATS".length() ? dong.substring("OK STATS".length()).strip() : "";
+        themNhatKy("""
+            ================ THỐNG KÊ HỆ THỐNG ================
+            %s
+            ===================================================""".formatted(duLieu.isEmpty() ? "(Trống)" : duLieu));
+        capNhatTrangThai("Đã cập nhật số liệu thống kê.");
     }
 
     private void xuLyMatKetNoi() {
