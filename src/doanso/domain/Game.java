@@ -1,6 +1,8 @@
 package doanso.domain;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -13,10 +15,12 @@ public class Game {
     private final int max;
     private final int soBiMat;
     private TrangThaiVan trangThai;
+    private CheDoDoan cheDoDoan;
     private String nguoiThang;
     private volatile boolean biDongDoHetGio;
     private final List<LuotDoan> dsLuotDoan;
     private final Set<String> nguoiChoiTrongVan;
+    private final Deque<String> hangDoiLuot;
 
     public Game(int maVan, int min, int max) {
         this(maVan, min, max, sinhSoNgauNhien(min, max));
@@ -36,10 +40,12 @@ public class Game {
         this.max = max;
         this.soBiMat = soBiMat;
         this.trangThai = TrangThaiVan.WAITING;
+        this.cheDoDoan = CheDoDoan.DONG_THOI;
         this.nguoiThang = null;
         this.biDongDoHetGio = false;
         this.dsLuotDoan = new ArrayList<>();
         this.nguoiChoiTrongVan = new HashSet<>();
+        this.hangDoiLuot = new ArrayDeque<>();
     }
 
     private static int sinhSoNgauNhien(int min, int max) {
@@ -53,14 +59,46 @@ public class Game {
         if (ten == null || ten.isBlank()) {
             return new KetQua.ThatBai<>("TEN_KHONG_HOP_LE", "Tên người chơi không được rỗng");
         }
-        nguoiChoiTrongVan.add(ten.strip());
+        String tenChuan = ten.strip();
+        nguoiChoiTrongVan.add(tenChuan);
+        if (!hangDoiLuot.contains(tenChuan)) {
+            hangDoiLuot.offer(tenChuan);
+        }
         return new KetQua.ThanhCong<>(null, "Đã tham gia ván #" + maVan);
     }
 
     public synchronized void roiVan(String ten) {
         if (ten != null) {
-            nguoiChoiTrongVan.remove(ten.strip());
+            String tenChuan = ten.strip();
+            nguoiChoiTrongVan.remove(tenChuan);
+            hangDoiLuot.remove(tenChuan);
         }
+    }
+
+    public synchronized void batCheDoLanLuot() {
+        this.cheDoDoan = CheDoDoan.LAN_LUOT;
+    }
+
+    public synchronized CheDoDoan getCheDoDoan() {
+        return cheDoDoan;
+    }
+
+    public synchronized Optional<String> getNguoiDangGiuLuot() {
+        if (cheDoDoan != CheDoDoan.LAN_LUOT) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(hangDoiLuot.peek());
+    }
+
+    public synchronized Optional<String> boQuaLuotHienTai() {
+        if (cheDoDoan != CheDoDoan.LAN_LUOT || hangDoiLuot.isEmpty()) {
+            return Optional.empty();
+        }
+        String nguoiBiBoQua = hangDoiLuot.poll();
+        if (nguoiBiBoQua != null) {
+            hangDoiLuot.offer(nguoiBiBoQua);
+        }
+        return Optional.ofNullable(hangDoiLuot.peek());
     }
 
     public synchronized KetQua<TrangThaiVan> moVan() {
@@ -105,6 +143,15 @@ public class Game {
                 "Người chơi " + tenChuan + " không còn trong ván chơi"
             );
         }
+        if (cheDoDoan == CheDoDoan.LAN_LUOT) {
+            String nguoiDenLuot = hangDoiLuot.peek();
+            if (nguoiDenLuot != null && !nguoiDenLuot.equals(tenChuan)) {
+                return new KetQua.ThatBai<>(
+                    "CHUA_TOI_LUOT",
+                    "Chưa tới lượt của " + tenChuan + ", đang là lượt của " + nguoiDenLuot
+                );
+            }
+        }
 
         GoiY goiY = GoiY.soSanh(soDoan, soBiMat);
         KetQua<LuotDoan> kqLuot = LuotDoan.taoTrongKhoang(tenChuan, soDoan, min, max, goiY);
@@ -114,6 +161,11 @@ public class Game {
             if (goiY == GoiY.CORRECT) {
                 nguoiThang = tenChuan;
                 trangThai = TrangThaiVan.FINISHED;
+            } else if (cheDoDoan == CheDoDoan.LAN_LUOT) {
+                String daDoan = hangDoiLuot.poll();
+                if (daDoan != null) {
+                    hangDoiLuot.offer(daDoan);
+                }
             }
         }
         return kqLuot;
