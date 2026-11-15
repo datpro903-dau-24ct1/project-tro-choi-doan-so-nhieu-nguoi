@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 
 // Phục vụ F06, F08, F09, F10, F11
 public class GameServer implements AutoCloseable {
@@ -249,41 +250,7 @@ public class GameServer implements AutoCloseable {
                 }
                 yield "OK JOIN " + thamSo;
             }
-            case "GUESS" -> {
-                if (thamSo.isEmpty()) {
-                    yield ketQuaCoBan;
-                }
-                int so;
-                try {
-                    so = Integer.parseInt(thamSo);
-                } catch (NumberFormatException e) {
-                    yield "ERROR SO_DOAN_KHONG_HOP_LE";
-                }
-                if (tenNguoiChoiHienTai == null || !soOnline.daOnline(tenNguoiChoiHienTai)) {
-                    yield "ERROR CHUA_DANG_NHAP";
-                }
-                synchronized (khoaVan) {
-                    if (vanHienTai == null || vanHienTai.getTrangThai() != TrangThaiVan.PLAYING) {
-                        yield "ERROR VAN_CHUA_MO";
-                    }
-                    KetQua<LuotDoan> kq = vanHienTai.doanSo(tenNguoiChoiHienTai, so);
-                    if (kq instanceof KetQua.ThatBai<LuotDoan> tb) {
-                        yield "ERROR " + tb.maLoi() + " " + tb.lyDo();
-                    }
-                    LuotDoan luot = ((KetQua.ThanhCong<LuotDoan>) kq).duLieu();
-                    GoiY gy = luot.ketQuaGoiY();
-                    if (gy == GoiY.CORRECT) {
-                        soOnline.broadcast("INFO NGUOI_THANG " + tenNguoiChoiHienTai + " " + so);
-                        yield "WIN " + so;
-                    } else if (gy == GoiY.HIGHER) {
-                        soOnline.broadcast("GUESS " + tenNguoiChoiHienTai + " " + so + " HIGHER");
-                        yield "HIGHER " + so;
-                    } else {
-                        soOnline.broadcast("GUESS " + tenNguoiChoiHienTai + " " + so + " LOWER");
-                        yield "LOWER " + so;
-                    }
-                }
-            }
+            case "GUESS" -> xuLyLenhGuess(tenNguoiChoiHienTai, thamSo);
             case "START" -> {
                 int min = 1;
                 int max = 100;
@@ -307,6 +274,57 @@ public class GameServer implements AutoCloseable {
             }
             default -> ketQuaCoBan;
         };
+    }
+
+    public static int phanTichSoDoan(String thamSo) throws LoiLenhDoanException {
+        if (thamSo == null || thamSo.isBlank()) {
+            throw new LoiLenhDoanException("THIEU_SO_DOAN", "Thiếu số đoán");
+        }
+        Function<String, Integer> boChuyenDoi = Integer::parseInt;
+        try {
+            return boChuyenDoi.apply(thamSo.strip());
+        } catch (NumberFormatException e) {
+            throw new LoiLenhDoanException("SO_DOAN_KHONG_HOP_LE", "Số đoán không phải số nguyên hợp lệ: " + thamSo, e);
+        }
+    }
+
+    public String xuLyLenhGuess(String tenNguoiChoiHienTai, String thamSo) {
+        final int so;
+        try {
+            so = phanTichSoDoan(thamSo);
+        } catch (LoiLenhDoanException e) {
+            return "ERROR " + e.getMaLoi();
+        }
+
+        if (tenNguoiChoiHienTai == null || !soOnline.daOnline(tenNguoiChoiHienTai)) {
+            return "ERROR CHUA_DANG_NHAP";
+        }
+
+        synchronized (khoaVan) {
+            if (vanHienTai == null) {
+                return "ERROR VAN_CHUA_MO";
+            }
+            KetQua<LuotDoan> kq = vanHienTai.doanSo(tenNguoiChoiHienTai, so);
+            if (kq instanceof KetQua.ThatBai<LuotDoan> tb) {
+                return "ERROR " + tb.maLoi() + " " + tb.lyDo();
+            }
+            LuotDoan luot = ((KetQua.ThanhCong<LuotDoan>) kq).duLieu();
+            GoiY gy = luot.ketQuaGoiY();
+            return switch (gy) {
+                case CORRECT -> {
+                    soOnline.broadcast("INFO NGUOI_THANG " + luot.nguoiChoi() + " " + luot.soDoan());
+                    yield "WIN " + luot.soDoan();
+                }
+                case HIGHER -> {
+                    soOnline.broadcast("GUESS " + luot.nguoiChoi() + " " + luot.soDoan() + " HIGHER");
+                    yield "HIGHER " + luot.soDoan();
+                }
+                case LOWER -> {
+                    soOnline.broadcast("GUESS " + luot.nguoiChoi() + " " + luot.soDoan() + " LOWER");
+                    yield "LOWER " + luot.soDoan();
+                }
+            };
+        }
     }
 
     @Override
