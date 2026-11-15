@@ -4,9 +4,12 @@ import doanso.domain.Game;
 import doanso.domain.GoiY;
 import doanso.domain.KetQua;
 import doanso.domain.LuotDoan;
+import doanso.domain.PhongChoi;
 import doanso.domain.TrangThaiVan;
 import doanso.repo.KhoBangDiem;
 import doanso.repo.KhoLichSuDoan;
+import doanso.service.QuanLyPhong;
+import doanso.service.QuanLyPhongChoi;
 import doanso.service.ThongKeService;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -36,6 +39,7 @@ public class GameServer implements AutoCloseable {
     private final KhoBangDiem khoBangDiem;
     private final KhoLichSuDoan khoLichSuDoan;
     private final ThongKeService thongKeService;
+    private final QuanLyPhong quanLyPhong;
     private final List<Game> danhSachCacVan;
     private final Set<Socket> dsSocketDangKetNoi;
     private volatile boolean dangChay;
@@ -65,6 +69,8 @@ public class GameServer implements AutoCloseable {
         this.khoBangDiem = new KhoBangDiem();
         this.khoLichSuDoan = new KhoLichSuDoan();
         this.thongKeService = new ThongKeService();
+        this.quanLyPhong = new QuanLyPhongChoi();
+        this.quanLyPhong.taoPhong("DEFAULT", "Phòng Mặc Định");
         this.danhSachCacVan = new ArrayList<>();
         this.dsSocketDangKetNoi = ConcurrentHashMap.newKeySet();
         this.dangChay = true;
@@ -113,6 +119,10 @@ public class GameServer implements AutoCloseable {
 
     public ThongKeService getThongKeService() {
         return thongKeService;
+    }
+
+    public QuanLyPhong getQuanLyPhong() {
+        return quanLyPhong;
     }
 
     public List<Game> getDanhSachCacVan() {
@@ -273,6 +283,7 @@ public class GameServer implements AutoCloseable {
         if (kq instanceof KetQua.ThanhCong) {
             String tenChuan = ten.strip();
             khoBangDiem.ghiNhanNguoiChoi(tenChuan);
+            quanLyPhong.vaoPhong("DEFAULT", tenChuan);
             synchronized (khoaVan) {
                 if (vanHienTai != null && vanHienTai.getTrangThai() == TrangThaiVan.PLAYING) {
                     vanHienTai.thamGiaVan(tenChuan);
@@ -287,6 +298,7 @@ public class GameServer implements AutoCloseable {
     public void huyNguoiChoi(String ten) {
         if (ten != null) {
             String tenChuan = ten.strip();
+            quanLyPhong.timMaPhongCuaNguoiChoi(tenChuan).ifPresent(ma -> quanLyPhong.roiPhong(ma, tenChuan));
             if (soOnline.huyDangKy(tenChuan)) {
                 synchronized (khoaVan) {
                     if (vanHienTai != null) {
@@ -339,6 +351,11 @@ public class GameServer implements AutoCloseable {
             case "SCORE" -> dinhDangBangDiem();
             case "HISTORY" -> dinhDangLichSu(thamSo);
             case "STATS" -> dinhDangThongKe();
+            case "CREATE_ROOM" -> thamSo.isEmpty() ? "ERROR THIEU_MA_PHONG" : "OK CREATE_ROOM " + thamSo.toUpperCase();
+            case "JOIN_ROOM" -> thamSo.isEmpty() ? "ERROR THIEU_MA_PHONG" : "OK JOIN_ROOM " + thamSo.toUpperCase();
+            case "LEAVE_ROOM" -> "OK LEAVE_ROOM";
+            case "LIST_ROOMS" -> "OK LIST_ROOMS";
+            case "CURRENT_ROOM" -> "OK CURRENT_ROOM";
             case "QUIT" -> "BYE";
             default -> "ERROR LENH_KHONG_HOP_LE";
         };
@@ -400,6 +417,64 @@ public class GameServer implements AutoCloseable {
                 yield dinhDangLichSu(tenXem);
             }
             case "STATS" -> dinhDangThongKe();
+            case "CREATE_ROOM" -> {
+                if (thamSo.isEmpty()) {
+                    yield "ERROR THIEU_MA_PHONG";
+                }
+                var kq = quanLyPhong.taoPhong(thamSo);
+                if (kq instanceof KetQua.ThanhCong<PhongChoi> tc) {
+                    yield "OK CREATE_ROOM " + tc.duLieu().getMaPhong();
+                } else {
+                    var tb = (KetQua.ThatBai<PhongChoi>) kq;
+                    yield "ERROR " + tb.maLoi() + " " + tb.lyDo();
+                }
+            }
+            case "JOIN_ROOM" -> {
+                if (thamSo.isEmpty()) {
+                    yield "ERROR THIEU_MA_PHONG";
+                }
+                if (tenNguoiChoiHienTai == null || tenNguoiChoiHienTai.isBlank()) {
+                    yield "ERROR CHUA_DANG_NHAP";
+                }
+                String maMoi = thamSo.strip().toUpperCase();
+                var phongCu = quanLyPhong.timMaPhongCuaNguoiChoi(tenNguoiChoiHienTai);
+                KetQua<Void> kqVao;
+                if (phongCu.isPresent()) {
+                    kqVao = quanLyPhong.chuyenPhong(phongCu.get(), maMoi, tenNguoiChoiHienTai);
+                } else {
+                    kqVao = quanLyPhong.vaoPhong(maMoi, tenNguoiChoiHienTai);
+                }
+                if (kqVao instanceof KetQua.ThanhCong) {
+                    yield "OK JOIN_ROOM " + maMoi;
+                } else {
+                    var tb = (KetQua.ThatBai<Void>) kqVao;
+                    yield "ERROR " + tb.maLoi() + " " + tb.lyDo();
+                }
+            }
+            case "LEAVE_ROOM" -> {
+                if (tenNguoiChoiHienTai == null || tenNguoiChoiHienTai.isBlank()) {
+                    yield "ERROR CHUA_DANG_NHAP";
+                }
+                var phongCu = quanLyPhong.timMaPhongCuaNguoiChoi(tenNguoiChoiHienTai);
+                if (phongCu.isPresent()) {
+                    quanLyPhong.roiPhong(phongCu.get(), tenNguoiChoiHienTai);
+                    yield "OK LEAVE_ROOM " + phongCu.get();
+                } else {
+                    yield "ERROR CHUA_VAO_PHONG";
+                }
+            }
+            case "CURRENT_ROOM" -> {
+                if (tenNguoiChoiHienTai == null || tenNguoiChoiHienTai.isBlank()) {
+                    yield "ERROR CHUA_DANG_NHAP";
+                }
+                yield quanLyPhong.timMaPhongCuaNguoiChoi(tenNguoiChoiHienTai)
+                    .map(ma -> "OK CURRENT_ROOM " + ma)
+                    .orElse("OK CURRENT_ROOM CHUA_VAO_PHONG");
+            }
+            case "LIST_ROOMS" -> {
+                String ds = String.join(", ", quanLyPhong.getDanhSachMaPhong());
+                yield "OK LIST_ROOMS " + (ds.isEmpty() ? "RONG" : ds);
+            }
             default -> ketQuaCoBan;
         };
     }
