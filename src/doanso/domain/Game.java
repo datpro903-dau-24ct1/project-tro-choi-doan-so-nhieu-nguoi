@@ -14,6 +14,7 @@ public class Game {
     private final int soBiMat;
     private TrangThaiVan trangThai;
     private String nguoiThang;
+    private volatile boolean biDongDoHetGio;
     private final List<LuotDoan> dsLuotDoan;
     private final Set<String> nguoiChoiTrongVan;
 
@@ -36,6 +37,7 @@ public class Game {
         this.soBiMat = soBiMat;
         this.trangThai = TrangThaiVan.WAITING;
         this.nguoiThang = null;
+        this.biDongDoHetGio = false;
         this.dsLuotDoan = new ArrayList<>();
         this.nguoiChoiTrongVan = new HashSet<>();
     }
@@ -65,6 +67,21 @@ public class Game {
         KetQua<TrangThaiVan> kq = trangThai.chuyenSang(TrangThaiVan.PLAYING);
         if (kq instanceof KetQua.ThanhCong<TrangThaiVan> tc) {
             trangThai = tc.duLieu();
+        }
+        return kq;
+    }
+
+    public synchronized KetQua<TrangThaiVan> dongVanDoHetGio() {
+        if (trangThai != TrangThaiVan.PLAYING) {
+            return new KetQua.ThatBai<>(
+                "KHONG_THE_DONG_DO_HET_GIO",
+                "Không thể đóng do hết giờ khi trạng thái ván là " + trangThai
+            );
+        }
+        KetQua<TrangThaiVan> kq = trangThai.chuyenSang(TrangThaiVan.FINISHED);
+        if (kq instanceof KetQua.ThanhCong<TrangThaiVan> tc) {
+            trangThai = tc.duLieu();
+            biDongDoHetGio = true;
         }
         return kq;
     }
@@ -128,6 +145,10 @@ public class Game {
 
     public synchronized boolean daCoNguoiThang() {
         return nguoiThang != null && trangThai == TrangThaiVan.FINISHED;
+    }
+
+    public synchronized boolean isBiDongDoHetGio() {
+        return biDongDoHetGio;
     }
 
     public synchronized int getSoLuotDoan() {
