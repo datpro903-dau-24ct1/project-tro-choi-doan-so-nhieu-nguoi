@@ -16,9 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 
 // Phục vụ F06, F08, F09, F10, F11
@@ -40,6 +42,9 @@ public class GameServer implements AutoCloseable {
     private Game vanHienTai;
     private int demMaVan;
     private final Object khoaVan = new Object();
+    private final ExecutorService beHenGio;
+    private Future<Boolean> tacVuHenGioHienTai;
+    private volatile boolean huyHenGio;
 
     public GameServer(int cong) throws IOException {
         this(cong, CO_BE_LUONG_MAC_DINH);
@@ -64,6 +69,9 @@ public class GameServer implements AutoCloseable {
         this.dangChay = true;
         this.vanHienTai = null;
         this.demMaVan = 0;
+        this.beHenGio = Executors.newFixedThreadPool(2);
+        this.tacVuHenGioHienTai = null;
+        this.huyHenGio = false;
     }
 
     public static KetQua<GameServer> thuMoCong(int cong) {
@@ -185,6 +193,76 @@ public class GameServer implements AutoCloseable {
 
             soOnline.broadcast("INFO BAT_DAU_VAN " + gameMoi.getMaVan() + " " + min + " " + max);
             return new KetQua.ThanhCong<>(gameMoi, "Đã mở ván #" + gameMoi.getMaVan() + " [" + min + ".." + max + "]");
+        }
+    }
+
+    // F20: Mở ván có giới hạn thời gian (mili-giây)
+    public KetQua<Game> moVanMoiCoGioiHanThoiGian(int min, int max, long thoiGianGioiHanMs) {
+        if (thoiGianGioiHanMs <= 0) {
+            return new KetQua.ThatBai<>("THOI_GIAN_KHONG_HOP_LE", "Thời gian giới hạn mỗi ván phải lớn hơn 0");
+        }
+        KetQua<Game> kqMo = moVanMoi(min, max);
+        if (kqMo instanceof KetQua.ThanhCong<Game> tc) {
+            batDauHenGioChoVan(tc.duLieu(), thoiGianGioiHanMs);
+        }
+        return kqMo;
+    }
+
+    // F20: Mở ván với số bí mật định trước và giới hạn thời gian (dùng cho kiểm thử)
+    public KetQua<Game> moVanMoiCoGioiHanThoiGian(int min, int max, int soBiMat, long thoiGianGioiHanMs) {
+        if (thoiGianGioiHanMs <= 0) {
+            return new KetQua.ThatBai<>("THOI_GIAN_KHONG_HOP_LE", "Thời gian giới hạn mỗi ván phải lớn hơn 0");
+        }
+        KetQua<Game> kqMo = moVanMoiVoiSoBiMat(min, max, soBiMat);
+        if (kqMo instanceof KetQua.ThanhCong<Game> tc) {
+            batDauHenGioChoVan(tc.duLieu(), thoiGianGioiHanMs);
+        }
+        return kqMo;
+    }
+
+    private void batDauHenGioChoVan(Game vanCanHenGio, long thoiGianGioiHanMs) {
+        synchronized (khoaVan) {
+            huyTacVuHenGioHienTai();
+            this.huyHenGio = false;
+            Callable<Boolean> tacVuDemGio = () -> {
+                try {
+                    Thread.sleep(thoiGianGioiHanMs);
+                } catch (InterruptedException e) {
+                    return false;
+                }
+                if (huyHenGio) {
+                    return false;
+                }
+                synchronized (khoaVan) {
+                    if (huyHenGio || vanHienTai != vanCanHenGio) {
+                        return false;
+                    }
+                    KetQua<TrangThaiVan> kqDong = vanCanHenGio.dongVanDoHetGio();
+                    if (kqDong instanceof KetQua.ThanhCong) {
+                        soOnline.broadcast(
+                            "INFO HET_GIO " + vanCanHenGio.getMaVan() + " " + vanCanHenGio.getSoBiMat()
+                        );
+                        return true;
+                    }
+                    return false;
+                }
+            };
+            this.tacVuHenGioHienTai = beHenGio.submit(tacVuDemGio);
+        }
+    }
+
+    public void huyTacVuHenGioHienTai() {
+        synchronized (khoaVan) {
+            this.huyHenGio = true;
+            if (this.tacVuHenGioHienTai != null && !this.tacVuHenGioHienTai.isDone()) {
+                this.tacVuHenGioHienTai.cancel(true);
+            }
+        }
+    }
+
+    public boolean dangCoTacVuHenGioChay() {
+        synchronized (khoaVan) {
+            return tacVuHenGioHienTai != null && !tacVuHenGioHienTai.isDone() && !tacVuHenGioHienTai.isCancelled();
         }
     }
 
@@ -347,6 +425,9 @@ public class GameServer implements AutoCloseable {
             KetQua<LuotDoan> kq = vanHienTai.doanSo(tenNguoiChoiHienTai, so);
             if (kq instanceof KetQua.ThatBai<LuotDoan> tb) {
                 if ("VAN_DA_KET_THUC".equals(tb.maLoi())) {
+                    if (vanHienTai.isBiDongDoHetGio()) {
+                        return "ERROR VAN_DA_KET_THUC Ván đã kết thúc do hết giờ";
+                    }
                     String thongTinThang = vanHienTai.getNguoiThang()
                         .map(ten -> "Ván đã có người thắng: " + ten)
                         .orElse(tb.lyDo());
@@ -359,6 +440,7 @@ public class GameServer implements AutoCloseable {
             GoiY gy = luot.ketQuaGoiY();
             return switch (gy) {
                 case CORRECT -> {
+                    huyTacVuHenGioHienTai();
                     khoBangDiem.congDiemThang(luot.nguoiChoi());
                     soOnline.broadcast("INFO NGUOI_THANG " + luot.nguoiChoi() + " " + luot.soDoan());
                     yield "WIN " + luot.soDoan();
@@ -378,6 +460,8 @@ public class GameServer implements AutoCloseable {
     @Override
     public void close() throws IOException {
         dangChay = false;
+        huyTacVuHenGioHienTai();
+        beHenGio.shutdownNow();
         beLuong.shutdownNow();
         if (!serverSocket.isClosed()) {
             serverSocket.close();
