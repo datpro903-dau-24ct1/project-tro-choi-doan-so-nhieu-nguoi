@@ -1,5 +1,6 @@
 package doanso.net;
 
+import doanso.domain.CheDoDoan;
 import doanso.domain.Game;
 import doanso.domain.GoiY;
 import doanso.domain.KetQua;
@@ -13,6 +14,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -197,6 +199,64 @@ public class GameServer implements AutoCloseable {
         }
     }
 
+    // F19: Mở ván theo chế độ đoán lần lượt theo vòng
+    public KetQua<Game> moVanMoiTheoLuot(int min, int max) {
+        return moVanMoiTheoLuot(min, max, (Integer) null, soOnline.getDanhSachTenOnline());
+    }
+
+    // F19: Mở ván theo chế độ đoán lần lượt với số bí mật và thứ tự hàng đợi định trước
+    public KetQua<Game> moVanMoiTheoLuot(int min, int max, int soBiMat, List<String> thuTuNguoiChoi) {
+        return moVanMoiTheoLuot(min, max, Integer.valueOf(soBiMat), thuTuNguoiChoi);
+    }
+
+    private KetQua<Game> moVanMoiTheoLuot(int min, int max, Integer soBiMat, Collection<String> thuTuNguoiChoi) {
+        if (min > max) {
+            return new KetQua.ThatBai<>("KHOANG_SO_KHONG_HOP_LE", "min (" + min + ") không được lớn hơn max (" + max + ")");
+        }
+        if (soOnline.getSoLuongOnline() == 0) {
+            return new KetQua.ThatBai<>("CHUA_CO_NGUOI_CHOI", "Không thể mở ván khi chưa có người chơi nào online");
+        }
+        synchronized (khoaVan) {
+            if (vanHienTai != null && vanHienTai.getTrangThai() == TrangThaiVan.PLAYING) {
+                return new KetQua.ThatBai<>("VAN_DANG_CHAY", "Ván #" + vanHienTai.getMaVan() + " đang diễn ra");
+            }
+            demMaVan++;
+            Game gameMoi = (soBiMat == null)
+                ? new Game(demMaVan, min, max)
+                : new Game(demMaVan, min, max, soBiMat);
+            gameMoi.batCheDoLanLuot();
+            if (thuTuNguoiChoi != null) {
+                for (String ten : thuTuNguoiChoi) {
+                    if (ten != null && soOnline.daOnline(ten.strip())) {
+                        gameMoi.thamGiaVan(ten.strip());
+                    }
+                }
+            }
+            soOnline.getDanhSachTenOnline().forEach(gameMoi::thamGiaVan);
+            gameMoi.moVan();
+            this.vanHienTai = gameMoi;
+            this.danhSachCacVan.add(gameMoi);
+
+            soOnline.broadcast("INFO BAT_DAU_VAN " + gameMoi.getMaVan() + " " + min + " " + max);
+            gameMoi.getNguoiDangGiuLuot().ifPresent(
+                nguoiDau -> soOnline.broadcast("INFO LUOT_TIEP_THEO " + nguoiDau)
+            );
+            return new KetQua.ThanhCong<>(gameMoi, "Đã mở ván theo lượt #" + gameMoi.getMaVan() + " [" + min + ".." + max + "]");
+        }
+    }
+
+    // F19: Bỏ qua lượt của người chơi hiện tại (khi không trả lời) và chuyển sang người tiếp theo
+    public Optional<String> chuyenLuotTiepTheo() {
+        synchronized (khoaVan) {
+            if (vanHienTai == null || vanHienTai.getTrangThai() != TrangThaiVan.PLAYING) {
+                return Optional.empty();
+            }
+            Optional<String> luotMoi = vanHienTai.boQuaLuotHienTai();
+            luotMoi.ifPresent(nguoiTiep -> soOnline.broadcast("INFO LUOT_TIEP_THEO " + nguoiTiep));
+            return luotMoi;
+        }
+    }
+
     // F20: Mở ván có giới hạn thời gian (mili-giây)
     public KetQua<Game> moVanMoiCoGioiHanThoiGian(int min, int max, long thoiGianGioiHanMs) {
         if (thoiGianGioiHanMs <= 0) {
@@ -290,9 +350,17 @@ public class GameServer implements AutoCloseable {
             if (soOnline.huyDangKy(tenChuan)) {
                 synchronized (khoaVan) {
                     if (vanHienTai != null) {
+                        Optional<String> luotTruocKhiRoi = vanHienTai.getNguoiDangGiuLuot();
                         vanHienTai.roiVan(tenChuan);
                         if (vanHienTai.getTrangThai() == TrangThaiVan.PLAYING) {
                             soOnline.broadcast("INFO NGUOI_ROI_PHONG " + tenChuan);
+                            if (vanHienTai.getCheDoDoan() == CheDoDoan.LAN_LUOT
+                                    && luotTruocKhiRoi.isPresent()
+                                    && luotTruocKhiRoi.get().equals(tenChuan)) {
+                                vanHienTai.getNguoiDangGiuLuot().ifPresent(
+                                    nguoiTiep -> soOnline.broadcast("INFO LUOT_TIEP_THEO " + nguoiTiep)
+                                );
+                            }
                         }
                     }
                 }
@@ -504,10 +572,20 @@ public class GameServer implements AutoCloseable {
                 }
                 case HIGHER -> {
                     soOnline.broadcast("GUESS " + luot.nguoiChoi() + " " + luot.soDoan() + " HIGHER");
+                    if (vanHienTai.getCheDoDoan() == CheDoDoan.LAN_LUOT) {
+                        vanHienTai.getNguoiDangGiuLuot().ifPresent(
+                            nguoiTiep -> soOnline.broadcast("INFO LUOT_TIEP_THEO " + nguoiTiep)
+                        );
+                    }
                     yield "HIGHER " + luot.soDoan();
                 }
                 case LOWER -> {
                     soOnline.broadcast("GUESS " + luot.nguoiChoi() + " " + luot.soDoan() + " LOWER");
+                    if (vanHienTai.getCheDoDoan() == CheDoDoan.LAN_LUOT) {
+                        vanHienTai.getNguoiDangGiuLuot().ifPresent(
+                            nguoiTiep -> soOnline.broadcast("INFO LUOT_TIEP_THEO " + nguoiTiep)
+                        );
+                    }
                     yield "LOWER " + luot.soDoan();
                 }
             };
