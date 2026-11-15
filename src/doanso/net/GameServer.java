@@ -7,10 +7,13 @@ import doanso.domain.LuotDoan;
 import doanso.domain.TrangThaiVan;
 import doanso.repo.KhoBangDiem;
 import doanso.repo.KhoLichSuDoan;
+import doanso.service.ThongKeService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +32,8 @@ public class GameServer implements AutoCloseable {
     private final SoNguoiChoiOnline soOnline;
     private final KhoBangDiem khoBangDiem;
     private final KhoLichSuDoan khoLichSuDoan;
+    private final ThongKeService thongKeService;
+    private final List<Game> danhSachCacVan;
     private final Set<Socket> dsSocketDangKetNoi;
     private volatile boolean dangChay;
 
@@ -53,6 +58,8 @@ public class GameServer implements AutoCloseable {
         this.soOnline = new SoNguoiChoiOnline();
         this.khoBangDiem = new KhoBangDiem();
         this.khoLichSuDoan = new KhoLichSuDoan();
+        this.thongKeService = new ThongKeService();
+        this.danhSachCacVan = new ArrayList<>();
         this.dsSocketDangKetNoi = ConcurrentHashMap.newKeySet();
         this.dangChay = true;
         this.vanHienTai = null;
@@ -93,6 +100,16 @@ public class GameServer implements AutoCloseable {
 
     public KhoLichSuDoan getKhoLichSuDoan() {
         return khoLichSuDoan;
+    }
+
+    public ThongKeService getThongKeService() {
+        return thongKeService;
+    }
+
+    public List<Game> getDanhSachCacVan() {
+        synchronized (khoaVan) {
+            return new ArrayList<>(danhSachCacVan);
+        }
     }
 
     public Optional<Game> getVanHienTai() {
@@ -140,6 +157,7 @@ public class GameServer implements AutoCloseable {
             soOnline.getDanhSachTenOnline().forEach(gameMoi::thamGiaVan);
             gameMoi.moVan();
             this.vanHienTai = gameMoi;
+            this.danhSachCacVan.add(gameMoi);
 
             soOnline.broadcast("INFO BAT_DAU_VAN " + gameMoi.getMaVan() + " " + min + " " + max);
             return new KetQua.ThanhCong<>(gameMoi, "Đã mở ván #" + gameMoi.getMaVan() + " [" + min + ".." + max + "]");
@@ -163,6 +181,7 @@ public class GameServer implements AutoCloseable {
             soOnline.getDanhSachTenOnline().forEach(gameMoi::thamGiaVan);
             gameMoi.moVan();
             this.vanHienTai = gameMoi;
+            this.danhSachCacVan.add(gameMoi);
 
             soOnline.broadcast("INFO BAT_DAU_VAN " + gameMoi.getMaVan() + " " + min + " " + max);
             return new KetQua.ThanhCong<>(gameMoi, "Đã mở ván #" + gameMoi.getMaVan() + " [" + min + ".." + max + "]");
