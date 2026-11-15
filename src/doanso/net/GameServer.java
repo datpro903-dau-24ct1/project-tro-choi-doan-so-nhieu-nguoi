@@ -87,6 +87,12 @@ public class GameServer implements AutoCloseable {
         }
     }
 
+    public Optional<String> getNguoiThangVanHienTai() {
+        synchronized (khoaVan) {
+            return Optional.ofNullable(vanHienTai).flatMap(Game::getNguoiThang);
+        }
+    }
+
     public void dangKySocketClient(Socket s) {
         if (s != null) {
             dsSocketDangKetNoi.add(s);
@@ -306,6 +312,12 @@ public class GameServer implements AutoCloseable {
             }
             KetQua<LuotDoan> kq = vanHienTai.doanSo(tenNguoiChoiHienTai, so);
             if (kq instanceof KetQua.ThatBai<LuotDoan> tb) {
+                if ("VAN_DA_KET_THUC".equals(tb.maLoi())) {
+                    String thongTinThang = vanHienTai.getNguoiThang()
+                        .map(ten -> "Ván đã có người thắng: " + ten)
+                        .orElse(tb.lyDo());
+                    return "ERROR VAN_DA_KET_THUC " + thongTinThang;
+                }
                 return "ERROR " + tb.maLoi() + " " + tb.lyDo();
             }
             LuotDoan luot = ((KetQua.ThanhCong<LuotDoan>) kq).duLieu();
