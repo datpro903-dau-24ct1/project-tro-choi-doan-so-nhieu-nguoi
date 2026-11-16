@@ -1,0 +1,148 @@
+% ---------------------------------------------------------------------
+%  CHƯƠNG 2 — CƠ SỞ LÝ THUYẾT VÀ CÔNG NGHỆ
+% ---------------------------------------------------------------------
+\chapter{Cơ sở lý thuyết và công nghệ}
+\label{ch:coso}
+
+\begin{muctieu}
+Chương này trình bày các kiến thức lý thuyết nền tảng của Java 21 được vận
+dụng trực tiếp trong đề tài gồm kiểu bản ghi bất biến, giao tiếp mạng Socket
+TCP, đồng bộ hóa đa luồng, quy tắc chống bế tắc luồng và thống kê bằng
+Streams API, cùng danh mục công cụ phát triển.
+\end{muctieu}
+
+\section{Kiến thức nền tảng}
+
+\subsection{Cấu trúc dữ liệu bất biến \code{record} và kiểu kết quả kín \code{sealed interface}}
+
+Trong môi trường đa luồng, các đối tượng bất biến \en{(immutable objects)}
+luôn an toàn luồng tự nhiên vì trạng thái của chúng không thể bị thay đổi sau
+khi khởi tạo~\cite{bloch2018effective}. Từ Java 16 trở đi và hoàn thiện trong
+Java 21~\cite{oraclejava21}, từ khóa \code{record} cho phép khai báo lớp dữ
+liệu bất biến với cú pháp ngắn gọn, tự động sinh các trường \code{private
+final}, phương thức truy cập và các phương thức \code{equals()},
+\code{hashCode()}, \code{toString()}. Trong đồ án, mỗi lượt đoán được biểu
+diễn bằng \code{record LuotDoan(String nguoiChoi, int soDoan, LocalDateTime
+thoiDiem, GoiY ketQuaGoiY)} kèm hàm dựng gọn \en{(compact constructor)} để
+kiểm tra tính hợp lệ ngay khi tạo.
+
+Bên cạnh đó, để biểu diễn tường minh các tình huống thành công hoặc thất bại
+nghiệp vụ mà không lạm dụng ngoại lệ cho luồng điều khiển thông thường, hệ
+thống sử dụng \code{sealed interface KetQua<T>} chỉ cho phép đúng hai kiểu
+con là \code{KetQua.ThanhCong<T>} và \code{KetQua.ThatBai<T>}. Khi kết hợp
+với biểu thức \code{switch} hoặc toán tử \code{instanceof} khớp mẫu
+\en{(pattern matching)} của Chương 6~\cite{dophuchao2026ajp}, trình biên dịch
+kiểm tra vét cạn mọi nhánh kết quả ngay lúc biên dịch.
+
+\subsection{Giao tiếp mạng hướng dòng với Socket TCP}
+
+\begin{dinhnghia}[Giao thức văn bản hướng dòng qua TCP]
+Giao thức văn bản hướng dòng \en{(line-oriented text protocol)} là phương thức
+truyền thông trên kênh kết nối \code{Socket} TCP, trong đó mỗi thông điệp yêu
+cầu hoặc phản hồi là một dòng văn bản mã hóa UTF-8 kết thúc bằng ký tự xuống
+dòng (\code{\textbackslash n}). Bên gửi sử dụng \code{PrintWriter} với chế độ
+tự động đẩy bộ đệm (\code{autoFlush = true}) và bên nhận đọc từng dòng nguyên
+vẹn qua \code{BufferedReader.readLine()}.
+\end{dinhnghia}
+
+Tại phía máy chủ, \code{ServerSocket} lắng nghe kết nối đến tại cổng xác định.
+Để tránh việc một máy khách đọc/ghi chậm làm nghẽn toàn bộ máy chủ, vòng lặp
+\code{accept()} chỉ nhận kết nối rồi lập tức đóng gói \code{Socket} vào tác vụ
+\code{ClientHandler} (hiện thực \code{Runnable}) và đẩy vào bể luồng cố định
+\code{ExecutorService}. Mọi tài nguyên mạng và luồng đọc/ghi đều được đặt
+trong khối \code{try-with-resources} để bảo đảm tự động đóng khi kết thúc
+hoặc khi xảy ra \code{IOException}.
+
+\subsection{Đồng bộ hóa đa luồng và phòng chống bế tắc \en{(Deadlock)}}
+
+Khi $N$ luồng xử lý khách cùng gọi phương thức đoán số trên cùng một đối
+tượng \code{Game}, thao tác kiểm tra trạng thái ván (\code{PLAYING}), so sánh
+với số bí mật và chốt người thắng đầu tiên tạo thành một vùng găng
+\en{(critical section)}~\cite{goetz2006java}. Nếu không đồng bộ hóa, hai luồng
+cùng đoán đúng ở một thời điểm có thể cùng nhìn thấy trạng thái \code{PLAYING}
+và ghi đè người thắng của nhau. Đồ án giải quyết triệt để vấn đề này bằng
+khóa nội tại \code{synchronized} trên đối tượng \code{Game} kết hợp cấu trúc
+bảng băm đồng thời \code{ConcurrentHashMap} cho sổ người chơi trực tuyến và
+bảng điểm.
+
+Đặc biệt, ở chức năng mở rộng đa phòng (\code{F21}), thao tác chuyển một
+người chơi từ phòng $P_a$ sang phòng $P_b$ đòi hỏi phải khóa cả hai phòng để
+bảo đảm tính nguyên tử (người chơi không thể biến mất hoặc xuất hiện ở hai
+phòng cùng lúc). Để loại bỏ điều kiện chờ vòng tròn \en{(circular wait)} gây
+bế tắc khi hai luồng chuyển người chơi ngược chiều nhau ($P_a \to P_b$ và
+$P_b \to P_a$), hệ thống áp dụng quy tắc sắp xếp khóa theo thứ tự từ điển của
+mã phòng:
+\begin{equation}
+\ell_1 = \min_{\text{lex}}(P_a, P_b), \qquad \ell_2 = \max_{\text{lex}}(P_a, P_b).
+\label{eq:lockorder}
+\end{equation}
+Mọi luồng đều bắt buộc giành khóa $\ell_1$ trước rồi mới giành khóa $\ell_2$
+theo công thức~\eqref{eq:lockorder}, nhờ đó đồ thị cấp phát tài nguyên không
+bao giờ có chu trình.
+
+\subsection{Thống kê dữ liệu với Java Streams API}
+
+Để tính số lượt đoán trung bình trên các ván đã hoàn tất và số lượt đoán
+trung bình của những người chơi có tham gia đoán (\code{F16}), hệ thống sử
+dụng đường ống \code{Stream} của Chương 2~\cite{dophuchao2026ajp}. Gọi
+$\mathcal{V}^*$ là tập các ván chơi đã kết thúc ở trạng thái \code{FINISHED}
+và có người chiến thắng, số lượt đoán trung bình mỗi ván $\bar{L}_{\text{ván}}$
+được xác định bởi:
+\begin{equation}
+\bar{L}_{\text{ván}} =
+\begin{cases}
+\dfrac{1}{|\mathcal{V}^*|} \displaystyle\sum_{v \in \mathcal{V}^*} \mathrm{soLuotDoan}(v), & \text{nếu } |\mathcal{V}^*| > 0, \\[10pt]
+0,0, & \text{nếu } |\mathcal{V}^*| = 0.
+\end{cases}
+\label{eq:avgvan}
+\end{equation}
+Công thức~\eqref{eq:avgvan} được cài đặt trực tiếp bằng chuỗi toán tử
+\code{stream().filter(...).mapToInt(Game::getSoLuotDoan).average().orElse(0.0)},
+vừa ngắn gọn vừa loại bỏ hoàn toàn nguy cơ chia cho $0$ khi chưa có ván nào
+hoàn tất.
+
+\begin{ghinho}
+Kết hợp \code{OptionalDouble.orElse(0.0)} trong Streams API với sao chép phòng
+thủ \code{new ArrayList<>(...)} ở tầng lưu trữ giúp các phép thống kê luôn an
+toàn trước cả hai lỗi kinh điển: lỗi chia cho $0$ trên tập rỗng và ngoại lệ
+\code{ConcurrentModificationException} khi có luồng khác đang ghi thêm lượt
+đoán mới.
+\end{ghinho}
+
+\section{Công cụ và thư viện}
+
+Danh mục công cụ và thư viện sử dụng trong bài tập lớn được liệt kê tại
+Bảng~\ref{tab:congcu}. Toàn bộ dự án tuân thủ quy tắc chỉ dùng thư viện chuẩn
+của JDK 21 và duy nhất một tệp thực thi JUnit 5 phục vụ kiểm thử đơn vị và
+tích hợp~\cite{junit5docs}.
+
+\begin{table}[H]
+\centering
+\caption{Công cụ và thư viện sử dụng trong bài tập lớn.}
+\label{tab:congcu}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}>{\bfseries\color{daunavy}}l >{\color{daumaroon}}l l}
+\toprule
+\rowcolor{gray100}\bfseries\color{daunavy}Thành phần & \bfseries\color{daumaroon}Phiên bản & \bfseries\color{daunavy}Vai trò \\
+\midrule
+OpenJDK (Java SE)                 & 21 LTS  & Ngôn ngữ lập trình và thư viện chuẩn (\code{net}, \code{concurrent}, \code{swing}) \\
+JUnit Platform Console Standalone & 1.10.2  & Khung thực thi tự động 103 ca kiểm thử đơn vị và tích hợp \\
+Git \& Git Worktree               & 2.45+   & Quản lý phiên bản và cô lập từng nhánh chức năng \code{F01}--\code{F21} \\
+Visual Studio Code                & 1.95+   & Môi trường phát triển tích hợp (IDE) và gỡ lỗi \\
+Draw.io / TikZ                    & 24.x    & Công cụ thiết kế các sơ đồ kiến trúc, UML và tuần tự \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\section{Các công trình và mô hình liên quan}
+
+Các ứng dụng trò chơi nhiều người qua mạng trong giáo trình lập trình hệ
+thống thường được triển khai theo hai hướng chính. Hướng thứ nhất truyền đối
+tượng nhị phân qua \code{ObjectInputStream} và \code{ObjectOutputStream}
+(\code{Serializable})~\cite{dophuchao2026ajp}; cách này tiện lợi khi ánh xạ
+lớp Java nhưng làm gói tin nặng, phụ thuộc chặt vào phiên bản lớp và rất khó
+kiểm thử độc lập bằng dòng lệnh. Hướng thứ hai sử dụng kiến trúc phân tầng
+kết hợp giao thức văn bản hướng dòng trên Socket TCP~\cite{fowler2002patterns}
+và mô hình bể luồng của gói \code{java.util.concurrent}~\cite{goetz2006java}.
+Bài tập lớn này chọn hướng thứ hai: vừa bám sát kiến thức Chương 4 và Chương 5
+của học phần, vừa cho phép kiểm thử tự động từng dòng lệnh giao thức qua cả
+\code{StringReader}/\code{StringWriter} lẫn \code{Socket} thật.

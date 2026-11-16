@@ -1,0 +1,103 @@
+% ---------------------------------------------------------------------
+%  CHƯƠNG 5 — KẾT QUẢ VÀ ĐÁNH GIÁ
+% ---------------------------------------------------------------------
+\chapter{Kết quả và đánh giá}
+\label{ch:ketqua}
+
+\begin{muctieu}
+Chương này đối chiếu kết quả đạt được với từng mục tiêu đã đặt ra ở
+Chương~\ref{ch:modau}, trình bày các số liệu đo lường định lượng từ bộ kiểm
+thử tự động, phân tích sâu các kịch bản tranh chấp đa luồng và nêu các hạn
+chế hiện tại của hệ thống.
+\end{muctieu}
+
+\section{Kết quả đạt được}
+
+Đối chiếu trực tiếp với năm mục tiêu đã đề ra tại Chương~\ref{ch:modau}, đồ án
+đã hoàn thành trọn vẹn tất cả các hạng mục:
+\begin{enumerate}[leftmargin=1.6em, itemsep=2pt]
+  \item \textbf{Đạt Mục tiêu 1 (Máy chủ TCP bể luồng):} \code{GameServer} sử
+        dụng bể luồng cố định 20 luồng phục vụ ổn định các kết nối song song,
+        tự động xếp hàng kết nối thứ 21 và thu hồi toàn bộ tài nguyên khi gọi
+        \code{close()}.
+  \item \textbf{Đạt Mục tiêu 2 (Giao thức văn bản đầy đủ):} Toàn bộ 12 lệnh
+        từ phía máy khách và các bản tin \code{INFO}, \code{OK}, \code{ERROR}
+        từ máy chủ hoạt động chính xác, xử lý an toàn mọi dòng rỗng, lệnh lạ
+        hoặc tham số sai định dạng số.
+  \item \textbf{Đạt Mục tiêu 3 (Hoàn thiện 21/21 chức năng):} Đầy đủ 21 chức
+        năng từ \code{F01} đến \code{F21} đã được cài đặt và hợp nhất lên
+        nhánh \code{main}.
+  \item \textbf{Đạt Mục tiêu 4 (Giao diện \code{ClientUI} mượt mà):} Giao diện
+        Swing tách luồng đọc mạng riêng, cập nhật trạng thái tức thời và hỗ
+        trợ mở ván, đoán số, tra cứu bảng xếp hạng, lịch sử, thống kê ngay
+        trên cửa sổ.
+  \item \textbf{Đạt Mục tiêu 5 (Kiểm thử TDD 100\%):} Toàn bộ 103/103 ca kiểm
+        thử tự động JUnit 5 đều vượt qua với 0 lỗi.
+\end{enumerate}
+
+\section{Độ đo đánh giá định lượng}
+
+Bảng~\ref{tab:ketqua} tổng hợp các chỉ số định lượng thực tế thu được khi biên
+dịch và chạy bộ kiểm thử tự động trên nhánh \code{main} của dự án.
+
+\begin{table}[H]
+\centering
+\caption{Các chỉ số đánh giá định lượng của hệ thống trên bộ kiểm thử thực tế.}
+\label{tab:ketqua}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}>{\bfseries\color{daunavy}}l c c l}
+\toprule
+\rowcolor{gray100}\bfseries\color{daunavy}Chỉ số đánh giá & \bfseries\color{daumaroon}Mục tiêu & \bfseries\color{daumaroon}Thực đạt & \bfseries\color{daunavy}Phương pháp kiểm chứng \\
+\midrule
+Số chức năng hoàn thành (\code{F01}--\code{F21}) & 21 / 21   & 21 / 21 (100\%)   & Đối chiếu bảng đặc tả Đề tài 30 \\
+Số ca kiểm thử JUnit 5 vượt qua                  & 100\%     & 103 / 103 (100\%) & Chạy \code{junit-platform-console-standalone} \\
+Thời gian thực thi toàn bộ 103 tests             & $< 10$~s  & $4,89$--$5,88$~s  & Đo trực tiếp bằng JUnit Platform \\
+Độ chính xác chốt người thắng (100 luồng)        & Tuyệt đối & 1 người thắng duy nhất & Lặp nhiều vòng trong \code{GameDongThoiTest} \\
+Kiểm thử chống \code{Deadlock} chuyển phòng      & 0 bế tắc  & 2.000 lượt / 40 luồng & \code{QuanLyPhongVaDaPhongTest} (timeout 5~s) \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\section{Bàn luận}
+
+Kết quả thực nghiệm cho thấy ba quyết định thiết kế mang lại hiệu quả rõ rệt
+nhất cho độ ổn định của hệ thống:
+\begin{itemize}[leftmargin=1.6em, itemsep=2pt]
+  \item \textbf{Đồng bộ hóa ở mức hạt mịn \en{(fine-grained synchronization)}:}
+        Thay vì đặt một khóa toàn cục trên toàn bộ máy chủ, mỗi đối tượng
+        \code{Game} và \code{PhongChoi} tự quản lý khóa riêng của mình, đồng
+        thời việc phát tin ra từng kênh \code{PrintWriter} chỉ khóa trên chính
+        đối tượng \code{PrintWriter} của khách đó. Cách làm này giúp các phòng
+        chơi khác nhau hoạt động song song thực sự mà không chặn lẫn nhau.
+  \item \textbf{Giải quyết tranh chấp giữa hẹn giờ hết ván và lượt đoán trúng
+        (\code{F20}):} Khi tác vụ hẹn giờ \code{Callable<Boolean>} thức dậy
+        sau \code{Thread.sleep} đúng vào khoảnh khắc một người chơi gửi số
+        đoán trúng, cả hai luồng đều phải đi qua cùng một khóa
+        \code{synchronized (khoaVan)} và kiểm tra trạng thái \code{PLAYING}
+        của \code{Game}. Luồng nào vào khóa trước sẽ chuyển trạng thái sang
+        \code{FINISHED}; luồng vào sau thấy trạng thái đã là \code{FINISHED}
+        nên tự động rút lui, không bao giờ xảy ra hiện tượng vừa công bố người
+        thắng vừa báo hết giờ.
+  \item \textbf{Xoay vòng lượt đoán bằng \code{ArrayDeque} (\code{F19}):}
+        So với cách dùng danh sách kèm biến chỉ số \code{currentIndex}, việc
+        giữ người đến lượt luôn ở đầu hàng đợi (\code{peek()}) và xoay vòng
+        bằng cặp thao tác \code{poll()}/\code{offer()} giúp xử lý cực kỳ gọn
+        khi người đang giữ lượt rớt mạng (\code{remove(ten)} tự động đẩy người
+        kế tiếp lên đầu hàng) hoặc khi có người mới tham gia giữa ván
+        (\code{offer(ten)} xếp vào cuối hàng).
+\end{itemize}
+
+\section{Hạn chế}
+
+\begin{luuy}
+Bên cạnh những kết quả đạt được, hệ thống hiện còn hai hạn chế thuộc phạm vi
+giới hạn của môn học:
+\begin{enumerate}[leftmargin=1.5em, itemsep=2pt]
+  \item \textbf{Lưu trữ dữ liệu trong bộ nhớ \en{(in-memory)}:} Bảng điểm
+        \code{KhoBangDiem} và lịch sử \code{KhoLichSuDoan} được giữ trong RAM
+        của tiến trình \code{GameServer}; khi tắt hẳn máy chủ thì dữ liệu sẽ
+        được khởi tạo lại từ đầu.
+  \item \textbf{Kênh truyền TCP văn bản thuần:} Dữ liệu truyền giữa
+        \code{ClientUI} và \code{GameServer} chưa được mã hóa bằng TLS/SSL và
+        chưa có bước xác thực mật khẩu tài khoản.
+\end{enumerate}
+\end{luuy}

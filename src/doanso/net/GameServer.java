@@ -12,10 +12,13 @@ import doanso.repo.KhoLichSuDoan;
 import doanso.service.QuanLyPhong;
 import doanso.service.QuanLyPhongChoi;
 import doanso.service.ThongKeService;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -309,7 +312,7 @@ public class GameServer implements AutoCloseable {
                         return false;
                     }
                     KetQua<TrangThaiVan> kqDong = vanCanHenGio.dongVanDoHetGio();
-                    if (kqDong instanceof KetQua.ThanhCong) {
+                    if (kqDong instanceof KetQua.ThanhCong<TrangThaiVan>) {
                         soOnline.broadcast(
                             "INFO HET_GIO " + vanCanHenGio.getMaVan() + " " + vanCanHenGio.getSoBiMat()
                         );
@@ -340,7 +343,7 @@ public class GameServer implements AutoCloseable {
     // F09 & F11: Đăng ký người chơi và xử lý trường hợp người mới vào giữa ván
     public KetQua<Void> dangKyNguoiChoi(String ten, PrintWriter out) {
         KetQua<Void> kq = soOnline.dangKy(ten, out);
-        if (kq instanceof KetQua.ThanhCong) {
+        if (kq instanceof KetQua.ThanhCong<Void>) {
             String tenChuan = ten.strip();
             khoBangDiem.ghiNhanNguoiChoi(tenChuan);
             quanLyPhong.vaoPhong("DEFAULT", tenChuan);
@@ -471,10 +474,10 @@ public class GameServer implements AutoCloseable {
                 KetQua<Game> kqMo = moVanMoi(min, max);
                 if (kqMo instanceof KetQua.ThanhCong<Game> tc) {
                     yield "OK START " + tc.duLieu().getMaVan() + " " + min + " " + max;
-                } else {
-                    var tb = (KetQua.ThatBai<Game>) kqMo;
+                } else if (kqMo instanceof KetQua.ThatBai<Game> tb) {
                     yield "ERROR " + tb.maLoi() + " " + tb.lyDo();
                 }
+                yield ketQuaCoBan;
             }
             case "SCORE" -> dinhDangBangDiem();
             case "HISTORY" -> {
@@ -492,10 +495,10 @@ public class GameServer implements AutoCloseable {
                 var kq = quanLyPhong.taoPhong(thamSo);
                 if (kq instanceof KetQua.ThanhCong<PhongChoi> tc) {
                     yield "OK CREATE_ROOM " + tc.duLieu().getMaPhong();
-                } else {
-                    var tb = (KetQua.ThatBai<PhongChoi>) kq;
+                } else if (kq instanceof KetQua.ThatBai<PhongChoi> tb) {
                     yield "ERROR " + tb.maLoi() + " " + tb.lyDo();
                 }
+                yield ketQuaCoBan;
             }
             case "JOIN_ROOM" -> {
                 if (thamSo.isEmpty()) {
@@ -512,12 +515,12 @@ public class GameServer implements AutoCloseable {
                 } else {
                     kqVao = quanLyPhong.vaoPhong(maMoi, tenNguoiChoiHienTai);
                 }
-                if (kqVao instanceof KetQua.ThanhCong) {
+                if (kqVao instanceof KetQua.ThanhCong<Void>) {
                     yield "OK JOIN_ROOM " + maMoi;
-                } else {
-                    var tb = (KetQua.ThatBai<Void>) kqVao;
+                } else if (kqVao instanceof KetQua.ThatBai<Void> tb) {
                     yield "ERROR " + tb.maLoi() + " " + tb.lyDo();
                 }
+                yield ketQuaCoBan;
             }
             case "LEAVE_ROOM" -> {
                 if (tenNguoiChoiHienTai == null || tenNguoiChoiHienTai.isBlank()) {
@@ -685,5 +688,37 @@ public class GameServer implements AutoCloseable {
             }
         }
         dsSocketDangKetNoi.clear();
+    }
+
+    public static void main(String[] args) throws IOException {
+        int cong = 8888;
+        if (args.length > 0) {
+            try {
+                cong = Integer.parseInt(args[0]);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        try (var server = new GameServer(cong);
+             var console = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
+            System.out.println("=== MAY CHU DOAN SO DANG CHAY TAI CONG " + server.getCong() + " ===");
+            System.out.println("Lenh console server: start [min max] | turn [min max] | timer [min max ms] | quit");
+            Thread luongAccept = new Thread(server::vongLapChapNhanKetNoi, "Server-Accept");
+            luongAccept.setDaemon(true);
+            luongAccept.start();
+
+            String dong;
+            while ((dong = console.readLine()) != null) {
+                String cmd = dong.strip();
+                if (cmd.equalsIgnoreCase("quit") || cmd.equalsIgnoreCase("exit")) {
+                    break;
+                } else if (cmd.toLowerCase().startsWith("start")) {
+                    System.out.println(server.moVanMoi(1, 100));
+                } else if (cmd.toLowerCase().startsWith("turn")) {
+                    System.out.println(server.moVanMoiTheoLuot(1, 100));
+                } else if (cmd.toLowerCase().startsWith("timer")) {
+                    System.out.println(server.moVanMoiCoGioiHanThoiGian(1, 100, 30000));
+                }
+            }
+        }
     }
 }

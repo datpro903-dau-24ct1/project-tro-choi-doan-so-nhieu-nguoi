@@ -41,6 +41,7 @@ public class ClientUI extends JFrame {
     private JTextField txtTen;
     private JTextField txtSoDoan;
     private JButton btnKetNoi;
+    private JButton btnMoVan;
     private JButton btnDoan;
     private JButton btnScore;
     private JButton btnHistory;
@@ -77,6 +78,8 @@ public class ClientUI extends JFrame {
         txtSoDoan.setEnabled(false);
 
         btnKetNoi = new JButton("Kết nối");
+        btnMoVan = new JButton("Mở ván");
+        btnMoVan.setEnabled(false);
         btnDoan = new JButton("Đoán");
         btnDoan.setEnabled(false);
         btnScore = new JButton("Bảng điểm");
@@ -123,6 +126,7 @@ public class ClientUI extends JFrame {
         });
 
         // Sự kiện các nút chức năng
+        btnMoVan.addActionListener(e -> guiLenh("START 1 100"));
         btnScore.addActionListener(e -> guiLenh("SCORE"));
         btnHistory.addActionListener(e -> guiLenh("HISTORY"));
         btnStats.addActionListener(e -> guiLenh("STATS"));
@@ -155,6 +159,7 @@ public class ClientUI extends JFrame {
         pnlDoan.add(new JLabel("Số đoán:"));
         pnlDoan.add(txtSoDoan);
         pnlDoan.add(btnDoan);
+        pnlDoan.add(btnMoVan);
         pnlDoan.add(btnScore);
         pnlDoan.add(btnHistory);
         pnlDoan.add(btnStats);
@@ -346,6 +351,7 @@ public class ClientUI extends JFrame {
 
             txtSoDoan.setEnabled(ketNoi);
             btnDoan.setEnabled(ketNoi);
+            btnMoVan.setEnabled(ketNoi);
             btnScore.setEnabled(ketNoi);
             btnHistory.setEnabled(ketNoi);
             btnStats.setEnabled(ketNoi);

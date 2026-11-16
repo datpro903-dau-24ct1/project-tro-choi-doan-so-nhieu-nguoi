@@ -1,0 +1,172 @@
+% ---------------------------------------------------------------------
+%  CHƯƠNG 4 — CÀI ĐẶT VÀ THỬ NGHIỆM
+% ---------------------------------------------------------------------
+\chapter{Cài đặt và thử nghiệm}
+\label{ch:caidat}
+
+\begin{muctieu}
+Chương này trình bày môi trường triển khai, các đoạn mã nguồn cốt lõi ở ba
+tầng của hệ thống, cách tổ chức giao diện máy khách và kết quả thực thi bộ
+103 ca kiểm thử tự động JUnit 5 theo quy trình TDD.
+\end{muctieu}
+
+\section{Môi trường triển khai}
+
+Hệ thống được phát triển, biên dịch và kiểm thử trên máy tính cá nhân chạy hệ
+điều hành Windows 11 (64-bit), bộ vi xử lý đa nhân, bộ nhớ RAM 16~GB, sử dụng
+OpenJDK 21 LTS và JUnit Platform Console Standalone 1.10.2 như đã nêu ở
+Bảng~\ref{tab:congcu}. Toàn bộ mã nguồn được quản lý bằng \code{git} theo quy
+trình phân nhánh \code{git worktree} cho từng chức năng \code{F01}--\code{F21}
+và lưu trữ tại kho
+\url{https://github.com/datpro903-dau-24ct1/project-tro-choi-doan-so-nhieu-nguoi}.
+
+\section{Các thành phần chính}
+
+\subsection{Bản ghi lượt đoán bất biến và đồng bộ hóa ván chơi (\code{F03}, \code{F04}, \code{F19})}
+
+Mã nguồn~\ref{lst:luotdoan} minh họa bản ghi \code{LuotDoan} sử dụng
+\code{record} và hàm dựng gọn \en{(compact constructor)} của Chương 6 để kiểm
+tra tính hợp lệ và chuẩn hóa tên người chơi ngay khi khởi tạo.
+
+\begin{lstlisting}[language=Java, caption={Cài đặt record bất biến LuotDoan kèm compact constructor.}, label={lst:luotdoan}]
+package doanso.domain;
+
+import java.time.LocalDateTime;
+
+public record LuotDoan(String nguoiChoi, int soDoan, LocalDateTime thoiDiem, GoiY ketQuaGoiY) {
+
+    // Validate fields and normalize player name inside compact constructor
+    public LuotDoan {
+        if (nguoiChoi == null || nguoiChoi.isBlank()) {
+            throw new IllegalArgumentException("Player name must not be blank");
+        }
+        if (thoiDiem == null) {
+            throw new IllegalArgumentException("Timestamp must not be null");
+        }
+        if (ketQuaGoiY == null) {
+            throw new IllegalArgumentException("Hint result must not be null");
+        }
+        nguoiChoi = nguoiChoi.strip();
+    }
+}
+\end{lstlisting}
+
+\subsection{Thống kê dữ liệu bằng đường ống Streams API (\code{F16})}
+
+Mã nguồn~\ref{lst:thongke} minh họa lớp \code{ThongKeService} sử dụng
+\code{Stream}, \code{filter}, \code{mapToInt}, \code{average} và
+\code{Collectors.groupingBy} để tính số lần đoán trung bình mỗi ván đã hoàn
+tất và thống kê số lượt đoán của từng người chơi mà không dùng vòng lặp thủ
+công.
+
+\begin{lstlisting}[language=Java, caption={Thống kê số lượt đoán trung bình bằng Java Streams API trong ThongKeService.java.}, label={lst:thongke}]
+// Compute average guesses across finished games that have a winner
+public double tinhTrungBinhSoLuotMoiVan(Collection<Game> danhSachVan) {
+    if (danhSachVan == null || danhSachVan.isEmpty()) {
+        return 0.0;
+    }
+    return danhSachVan.stream()
+        .filter(Objects::nonNull)
+        .filter(Game::daCoNguoiThang)
+        .mapToInt(Game::getSoLuotDoan)
+        .average()
+        .orElse(0.0);
+}
+
+// Group and count total guesses per player using Collectors.groupingBy
+public Map<String, Long> thongKeSoLuotTheoTungNguoi(KhoLichSuDoan khoLichSu) {
+    if (khoLichSu == null) {
+        return Map.of();
+    }
+    return khoLichSu.layTatCaLuotDoan().stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.groupingBy(LuotDoan::nguoiChoi, Collectors.counting()));
+}
+\end{lstlisting}
+
+\subsection{Sắp xếp khóa chống bế tắc khi chuyển phòng chơi (\code{F21})}
+
+Mã nguồn~\ref{lst:lockorder} minh họa phương thức \code{vaoPhong} trong
+\code{QuanLyPhongChoi.java}, áp dụng quy tắc giành khóa theo thứ tự từ điển
+cố định của công thức~\eqref{eq:lockorder} để triệt tiêu hoàn toàn nguy cơ
+\code{deadlock} khi nhiều luồng chuyển phòng chéo nhau cùng lúc.
+
+\begin{lstlisting}[language=Java, caption={Giành khóa theo thứ tự từ điển cố định chống Deadlock trong QuanLyPhongChoi.java.}, label={lst:lockorder}]
+// Acquire room locks in deterministic lexicographical order to prevent deadlock
+PhongChoi khoa1 = maCu.compareTo(maMoi) < 0 ? pCu : pMoi;
+PhongChoi khoa2 = maCu.compareTo(maMoi) < 0 ? pMoi : pCu;
+
+synchronized (khoa1) {
+    synchronized (khoa2) {
+        pCu.xoaNguoiChoi(tenChuan);
+        if (pCu.getTrangThaiVanHienTai() == TrangThaiVan.PLAYING) {
+            soOnline.broadcastTrongTap(
+                pCu.getDanhSachNguoiChoi(), "INFO NGUOI_ROI_PHONG " + tenChuan
+            );
+        }
+        KetQua<Void> kqVao = pMoi.themNguoiChoi(tenChuan);
+        if (kqVao instanceof KetQua.ThanhCong) {
+            nguoiChoiThuocPhong.put(tenChuan, maMoi);
+        }
+        return kqVao;
+    }
+}
+\end{lstlisting}
+
+\section{Giao diện và vận hành thực tế}
+
+Giao diện máy khách \code{ClientUI} được xây dựng bằng Java Swing
+(\code{JFrame}), bố trí thành 3 vùng rõ ràng: thanh cấu hình kết nối ở phía
+trên (\code{Host}, \code{Port}, \code{Tên}, nút \code{Kết nối}), khung nhật
+ký ván chơi có thanh cuộn ở chính giữa (\code{JScrollPane} chứa
+\code{JTextArea}), và thanh điều khiển ở phía dưới (\code{Số đoán}, nút
+\code{Đoán}, \code{Mở ván}, \code{Bảng điểm}, \code{Lịch sử}, \code{Thống kê},
+\code{Thoát}). Ngay khi kết nối thành công, \code{ClientUI} khởi chạy một
+luồng nền riêng (\code{LuongDocClient}) để lắng nghe thông điệp từ máy chủ và
+đẩy cập nhật giao diện về luồng sự kiện Swing qua
+\code{SwingUtilities.invokeLater}, giữ cho cửa sổ luôn mượt mà.
+
+\section{Kiểm thử tự động theo phương pháp TDD}
+
+Nhóm áp dụng nghiêm ngặt quy trình TDD cho toàn bộ 21 chức năng: viết bài
+kiểm thử bao phủ các trường hợp biên trước (xác nhận test đỏ), sau đó viết mã
+nguồn tối thiểu để vượt qua bài kiểm thử (test xanh). Tổng cộng dự án có
+\textbf{25 lớp kiểm thử với 103 ca kiểm thử tự động}, phân bổ theo từng chức
+năng như tổng hợp tại Bảng~\ref{tab:kiemthu}.
+
+\begin{table}[H]
+\centering
+\caption{Tổng hợp 25 lớp kiểm thử JUnit 5 (103 test cases) trong dự án.}
+\label{tab:kiemthu}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{>{\bfseries\color{daunavy}}l l c p{6.8cm}}
+\toprule
+\rowcolor{gray100}\bfseries\color{daunavy}Lớp kiểm thử & \bfseries\color{daumaroon}Chức năng & \bfseries\color{daunavy}Số ca & \bfseries\color{daunavy}Các trường hợp biên đã kiểm chứng \\
+\midrule
+\code{AppTest}                             & Khởi tạo       & 1  & Kiểm tra khung chạy JUnit 5 ban đầu \\
+\code{TrangThaiVaGoiYTest}                 & F02            & 5  & Chuyển trạng thái ngược \code{FINISHED} $\to$ \code{PLAYING}; đọc/đổi đa luồng \\
+\code{LuotDoanTest}                        & F03            & 6  & Tên \code{null}/rỗng, tự cắt khoảng trắng, ngoài khoảng $[min..max]$ \\
+\code{GameTest}                            & F04            & 4  & Đoán khi chưa mở/đã đóng, người rời ván, sao chép phòng thủ \\
+\code{GameDongThoiTest}                    & F05            & 4  & 100 luồng cùng đoán đúng một số lặp nhiều vòng, đúng 1 người thắng \\
+\code{GameServerTest}                      & F06, F01       & 4  & Cổng âm, cổng bị chiếm, client đóng đột ngột (\code{readLine = null}) \\
+\code{ClientUITest}                        & F07            & 7  & Server chưa chạy, nhập chữ thay vì số, ô rỗng, server đóng giữa ván \\
+\code{ClientHandlerVaBeLuongTest}          & F08            & 4  & Vượt cỡ bể 20 khách (khách thứ 21 chờ hàng đợi), handler ném ngoại lệ \\
+\code{SoNguoiChoiOnlineVaBroadcastTest}    & F09, F10       & 9  & Nhiều luồng \code{JOIN} trùng tên cùng lúc, tự gỡ client lỗi khi broadcast \\
+\code{MayChuMoVanTest}                     & F11            & 6  & Mở khi ván đang chạy, khi chưa có ai online, người mới vào giữa ván \\
+\code{NhanLuotDoanQuaMangTest}             & F12            & 4  & Ngoại lệ \code{LoiLenhDoanException}, hai lệnh đoán đến cùng lúc qua Socket \\
+\code{CongBoNguoiThangVaDongVanTest}       & F13            & 4  & 20 người cùng trúng qua mạng, người thắng rớt mạng ngay sau khi thắng \\
+\code{KhoBangDiemTest}                     & F14            & 4  & Cộng điểm đồng thời bằng \code{merge}, đồng điểm xếp theo tên tăng dần \\
+\code{KhoLichSuDoanTest}                   & F15            & 4  & Nhiều luồng vừa ghi vừa duyệt lịch sử không ném \code{CME} \\
+\code{ThongKeServiceTest}                  & F16            & 4  & Chưa có ván hoàn tất trả $0,0$, loại bỏ ván không ai thắng, người chỉ xem \\
+\code{HienThiScoreHistoryStatsTest}        & F17            & 6  & Bảng điểm rỗng, xem lịch sử người chưa đoán, định dạng thống kê \\
+\code{ClientUIHienThiTest}                 & F17            & 4  & Bấm nút \code{SCORE}, \code{HISTORY}, \code{STATS} và hiển thị nhiều dòng \\
+\code{NgatKetNoiVaDonDepTaiNguyenTest}     & F18            & 4  & Rớt mạng giữa ván giữ nguyên lịch sử, phát thông báo rời phòng \\
+\code{CheDoDoanLanLuotTest}                & F19            & 4  & Xoay vòng \code{ArrayDeque}, chặn đoán sớm, tự chuyển lượt khi rớt mạng \\
+\code{GioiHanThoiGianVanTest}              & F20            & 4  & Tranh chấp hết giờ đúng lúc đoán trúng, hủy tác vụ hẹn giờ khi thắng sớm \\
+\code{PhongChoiTest}                       & F21            & 5  & Khởi tạo phòng, cách ly ván chơi và bảng điểm giữa hai phòng độc lập \\
+\code{QuanLyPhongVaDaPhongTest}            & F21            & 6  & 40 luồng chuyển phòng chéo nhau 2.000 lần không bị \code{deadlock} \\
+\midrule
+\textbf{Tổng cộng (25 containers)}         & \textbf{F01--F21} & \textbf{103} & \textbf{103/103 ca kiểm thử thành công (0 lỗi)} \\
+\bottomrule
+\end{tabular}}
+\end{table}

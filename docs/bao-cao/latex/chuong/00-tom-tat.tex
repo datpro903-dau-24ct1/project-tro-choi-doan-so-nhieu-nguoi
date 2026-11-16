@@ -1,0 +1,34 @@
+% ---------------------------------------------------------------------
+%  TÓM TẮT
+% ---------------------------------------------------------------------
+\begin{abstract}
+
+Ứng dụng mạng tương tác thời gian thực nhiều người dùng là một bài toán cốt
+lõi trong kỹ thuật phần mềm hiện đại. Bài tập lớn này xây dựng hệ thống
+\term{Trò chơi đoán số nhiều người qua mạng TCP} (Đề tài số 30) trên nền tảng
+Java 21. Thách thức trung tâm của bài toán nằm ở việc đồng bộ hóa trạng thái
+khi nhiều máy khách cùng gửi lượt đoán đồng thời tới máy chủ, loại bỏ hiện
+tượng tranh chấp dữ liệu \en{(race condition)}, phòng tránh bế tắc luồng
+\en{(deadlock)} khi người chơi chuyển giữa nhiều phòng chơi song song, và bảo
+đảm độ bền vững của máy chủ khi máy khách ngắt kết nối đột ngột giữa ván.
+
+Để giải quyết trọn vẹn các thách thức trên, nhóm thiết kế hệ thống theo kiến
+trúc 3 tầng phân tách độc lập gồm Tầng Giao diện và Mạng (\code{ui},
+\code{net}), Tầng Nghiệp vụ (\code{domain}, \code{service}) và Tầng Lưu trữ
+(\code{repo}). Hệ thống vận dụng mô hình máy chủ đa luồng
+\en{(thread-per-connection)} với bể luồng cố định \code{ExecutorService},
+giao thức văn bản hướng dòng qua \code{BufferedReader} và \code{PrintWriter}
+có bật \code{auto-flush}, cấu trúc bản ghi bất biến \code{record LuotDoan},
+kiểu kết quả đóng kín \code{sealed interface KetQua<T>}, hàng đợi hai đầu
+\code{ArrayDeque} cho chế độ đoán lần lượt theo vòng, tác vụ hẹn giờ
+\code{Future} cho giới hạn thời gian mỗi ván, và quy tắc giành khóa theo thứ
+tự từ điển cố định \en{(lock ordering rule)} để chống bế tắc. Toàn bộ 21 chức
+năng từ \code{F01} đến \code{F21} đã được phát triển theo quy trình hướng
+kiểm thử \en{(Test-Driven Development -- TDD)} và vượt qua \textbf{103/103 ca
+kiểm thử tự động JUnit 5} (đạt tỷ lệ 100\%) trong thời gian dưới 6 giây.
+
+\vspace{0.8em}
+\noindent\textbf{Từ khoá:} lập trình mạng Socket TCP, Java 21, đồng bộ hóa đa
+luồng, chống bế tắc Lock Ordering, Streams API, phát triển hướng kiểm thử TDD.
+
+\end{abstract}

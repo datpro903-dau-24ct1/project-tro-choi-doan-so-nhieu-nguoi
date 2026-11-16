@@ -1,0 +1,72 @@
+% !TEX program = xelatex
+% =====================================================================
+%  BÁO CÁO BÀI TẬP LỚN LẬP TRÌNH JAVA NÂNG CAO, HỌC PHẦN AJP20101
+%  Khoa Công nghệ Thông tin, Trường Đại học Kiến trúc Đà Nẵng
+%
+%  Build:  latexmk -xelatex do-an.tex
+%  Overleaf: Menu > Compiler > XeLaTeX, rồi bấm Recompile.
+% =====================================================================
+\documentclass[12pt, a4paper, oneside]{book}
+\input{styles/settings}
+
+% =====================================================================
+%  THÔNG TIN ĐỒ ÁN / BÀI TẬP LỚN
+% =====================================================================
+\crname{BÁO CÁO BÀI TẬP LỚN LẬP TRÌNH JAVA NÂNG CAO}
+\cmonhoc{Học phần AJP20101 \textperiodcentered{} Lập trình Java nâng cao}
+\ctname{ĐỀ TÀI 30: XÂY DỰNG HỆ THỐNG TRÒ CHƠI\\ĐOÁN SỐ NHIỀU NGƯỜI QUA MẠNG TCP}
+\cstuname{Trần Thanh Bình \textperiodcentered{} Huỳnh Tiến Đạt}
+\cmssv{Nhóm Bình -- Đạt}
+\clopsv{CNTT 24CT1}
+\csCouncil{Công nghệ thông tin}
+\csSupervise{TS. Đỗ Phúc Hảo}
+\cttime{2025--2026}
+\csdeptname{KHOA CÔNG NGHỆ THÔNG TIN}
+\csplace{Đà Nẵng}
+
+\begin{document}
+
+\coverpage
+
+% ---------------------------------------------------------------------
+%  PHẦN ĐẦU: đánh số trang bằng số La Mã thường
+% ---------------------------------------------------------------------
+\frontmatter
+\dauPageStyle
+
+\input{chuong/00-loi-cam-doan}
+\input{chuong/00-loi-cam-on}
+\input{chuong/00-tom-tat}
+
+\tableofcontents
+\listoffigures
+\listoftables
+\listofalgorithms
+
+% ---------------------------------------------------------------------
+%  THÂN BÁO CÁO: sáu chương theo quy cách của học phần
+% ---------------------------------------------------------------------
+\mainmatter
+\dauPageStyle
+
+\input{chuong/01-mo-dau}
+\input{chuong/02-co-so-ly-thuyet}
+\input{chuong/03-phan-tich-thiet-ke}
+\input{chuong/04-cai-dat}
+\input{chuong/05-ket-qua-danh-gia}
+\input{chuong/06-ket-luan}
+
+% ---------------------------------------------------------------------
+%  TÀI LIỆU THAM KHẢO VÀ PHỤ LỤC
+% ---------------------------------------------------------------------
+\backmatter
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Tài liệu tham khảo}
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\input{chuong/07-phu-luc}
+
+\end{document}

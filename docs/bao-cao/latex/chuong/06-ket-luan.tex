@@ -1,0 +1,66 @@
+% ---------------------------------------------------------------------
+%  CHƯƠNG 6 — KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN
+% ---------------------------------------------------------------------
+\chapter{Kết luận và hướng phát triển}
+\label{ch:ketluan}
+
+\begin{muctieu}
+Chương này tổng kết toàn bộ kết quả thực hiện bài tập lớn, rút ra các bài học
+kinh nghiệm về kỹ thuật lập trình và phối hợp nhóm, đồng thời đề xuất các
+hướng mở rộng hệ thống trong tương lai.
+\end{muctieu}
+
+\section{Kết luận}
+
+Bài tập lớn Đề tài 30 \emph{``Xây dựng hệ thống trò chơi đoán số nhiều người
+qua mạng TCP''} đã hoàn thành trọn vẹn 100\% mục tiêu đặt ra ở
+Chương~\ref{ch:modau}. Nhóm đã thiết kế và hiện thực thành công toàn bộ 21/21
+chức năng (\code{F01}--\code{F21}) theo kiến trúc 3 tầng phân tách rõ ràng,
+vận dụng đầy đủ các kỹ thuật trọng tâm của học phần Lập trình Java nâng cao
+(AJP20101) từ Chương 1 đến Chương 6 và kiểm chứng bằng bộ 103 ca kiểm thử tự
+động JUnit 5 đạt tỷ lệ thành công tuyệt đối. Sản phẩm chạy ổn định, đáp ứng
+tốt cả chế độ chơi đồng thời lẫn chế độ chơi theo lượt, hỗ trợ giới hạn thời
+gian mỗi ván và điều phối nhiều phòng chơi song song không bế tắc.
+
+\section{Bài học rút ra}
+
+Qua quá trình thực hiện đề tài, nhóm rút ra ba bài học quan trọng:
+\begin{itemize}[leftmargin=1.6em, itemsep=2pt]
+  \item \textbf{Thiết kế giao thức và hợp đồng kiểu dữ liệu trước khi chia
+        việc:} Việc thống nhất sớm giao thức văn bản (\code{F01}) cùng các
+        kiểu bất biến \code{KetQua<T>}, \code{TrangThaiVan}, \code{GoiY}
+        (\code{F02}) và \code{LuotDoan} (\code{F03}) đã giúp hai thành viên
+        phát triển song song trên các nhánh \code{git worktree} riêng biệt mà
+        hầu như không xảy ra xung đột khi gộp nhánh.
+  \item \textbf{Viết kiểm thử đa luồng lặp nhiều vòng để bắt lỗi tranh chấp:}
+        Các lỗi \en{race condition} và \en{deadlock} hiếm khi lộ diện nếu chỉ
+        bấm thử bằng tay một vài lần trên giao diện. Việc dùng
+        \code{ExecutorService} tạo 20--100 luồng bắn đồng thời qua nhiều vòng
+        lặp trong JUnit 5 giúp phát hiện và khóa chặt các vùng găng ngay từ
+        khâu phát triển.
+  \item \textbf{Vai trò và giới hạn của công cụ AI hỗ trợ:} Công cụ AI rất
+        hiệu quả khi hỗ trợ sinh khung kiểm thử biên và rà soát quy ước mã
+        nguồn, nhưng người lập trình phải trực tiếp kiểm soát thiết kế khóa
+        đồng bộ, thứ tự giành khóa và đọc hiểu từng dòng mã trước khi commit.
+\end{itemize}
+
+\section{Hướng phát triển}
+
+Để khắc phục các hạn chế đã nêu ở Chương~\ref{ch:ketqua} và nâng cấp hệ thống
+lên quy mô thực tế, nhóm đề xuất bốn hướng phát triển tiếp theo:
+\begin{itemize}[leftmargin=1.6em, itemsep=2pt]
+  \item \textbf{Lưu trữ bền vững bảng điểm và lịch sử:} Bổ sung tầng lưu trữ
+        ra tệp định dạng văn bản/JSON hoặc cơ sở dữ liệu quan hệ qua JDBC để
+        bảo toàn điểm số của người chơi sau khi khởi động lại máy chủ.
+  \item \textbf{Nâng cấp giao diện điều khiển đa phòng trên \code{ClientUI}:}
+        Thêm danh sách phòng trực quan và nút chuyển phòng nhanh ngay trên cửa
+        sổ Swing tận dụng các lệnh \code{CREATE\_ROOM}, \code{JOIN\_ROOM},
+        \code{LIST\_ROOMS} đã có sẵn trên \code{GameServer}.
+  \item \textbf{Bảo mật kênh truyền và xác thực người dùng:} Tích hợp
+        \code{SSLSocket}/\code{SSLServerSocket} để mã hóa luồng lệnh TCP và
+        bổ sung cơ chế đăng nhập có mật khẩu.
+  \item \textbf{Tích hợp người chơi máy \en{(AI Bot)}:} Xây dựng mô-đun người
+        chơi tự động sử dụng thuật toán tìm kiếm nhị phân \en{(binary search)}
+        trên khoảng $[min..max]$ dựa theo gợi ý \code{HIGHER}/\code{LOWER} để
+        chơi cùng người thật trong chế độ đoán theo lượt.
+\end{itemize}
