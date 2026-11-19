@@ -1,191 +1,93 @@
 % ---------------------------------------------------------------------
-%  CHƯƠNG 3 — PHÂN TÍCH VÀ THIẾT KẾ
+%  CHƯƠNG 3 — PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG
 % ---------------------------------------------------------------------
-\chapter{Phân tích và thiết kế}
+\chapter{Phân tích và thiết kế hệ thống}
 \label{ch:thietke}
 
 \begin{muctieu}
-Chương này phân tích yêu cầu bài toán, trình bày bảng phân rã 21 chức năng
-(\code{F01}--\code{F21}), thiết kế kiến trúc 3 tầng, thiết kế các kiểu dữ
-liệu miền nghiệp vụ và các giải thuật xử lý đồng thời cốt lõi.
+Phân tích chi tiết 21 chức năng bài toán, thiết kế kiến trúc hệ thống 3 tầng,
+mô hình hóa dữ liệu bất biến và các sơ đồ lớp UML, sơ đồ tuần tự chuẩn mực.
 \end{muctieu}
 
-\section{Phân tích bài toán và yêu cầu}
+\section{Phân tích bài toán và phân rã 21 chức năng}
 
-Hệ thống nhận đầu vào là các dòng lệnh văn bản từ nhiều máy khách kết nối
-đồng thời qua mạng TCP và trả về các dòng phản hồi trực tiếp cho người gửi
-hoặc phát thông báo chung \en{(broadcast)} tới toàn bộ người chơi trong phòng.
-Để phủ kín yêu cầu của Đề tài 30 và sáu chương lý thuyết, nhóm đã phân rã bài
-toán thành 21 chức năng từ \code{F01} đến \code{F21}, chia thành 4 mốc phối
-hợp song song giữa hai thành viên như trình bày tại Hình~\ref{fig:phanra} và
-Bảng~\ref{tab:chucnang}.
+Hệ thống trò chơi đoán số nhiều người được phân rã thành 21 chức năng chuẩn
+mực từ F01 đến F21, phân định rõ khối lượng công việc giữa hai thành viên
+trong nhóm:
+\begin{itemize}[leftmargin=1.6em, itemsep=2pt]
+  \item \textbf{Huỳnh Tiến Đạt (Logic nghiệp vụ \& Dữ liệu Streams):} Đảm nhiệm
+        11 mục cốt lõi gồm mô hình \code{Game}, \code{LuotDoan},
+        \code{TrangThaiVan}, \code{GoiY}, bảng điểm \code{KhoBangDiem}, lịch
+        sử \code{KhoLichSuDoan}, thống kê \code{ThongKeService}, chế độ đoán
+        lần lượt \code{ArrayDeque} và hẹn giờ ván với \code{Future} (F02, F03,
+        F04, F05, F12, F13, F14, F15, F16, F19, F20).
+  \item \textbf{Trần Thanh Bình (Hạ tầng mạng TCP, Giao diện \& Đa phòng):}
+        Đảm nhiệm 10 mục hạ tầng gồm máy chủ \code{GameServer}, giao diện
+        người dùng \code{ClientUI}, bể luồng \code{ClientHandler}, sổ người
+        chơi online \code{SoNguoiChoiOnline}, broadcast tin nhắn, mở ván chơi,
+        hiển thị dữ liệu bảng điểm/lịch sử/thống kê, xử lý ngắt kết nối dọn
+        dẹp tài nguyên và điều phối đa phòng chơi song song chống Deadlock
+        (F01, F06, F07, F08, F09, F10, F11, F17, F18, F21).
+\end{itemize}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.95\textwidth]{01-phan-ra-chuc-nang.drawio.png}
-\caption{Sơ đồ phân rã 21 chức năng của hệ thống trò chơi đoán số nhiều người.}
-\label{fig:phanra}
-\end{figure}
+\section{Thiết kế kiến trúc hệ thống 3 tầng}
 
-\begin{table}[H]
-\centering
-\caption{Tổng hợp 21 chức năng (\code{F01}--\code{F21}) và phân công thực hiện.}
-\label{tab:chucnang}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{>{\bfseries\color{daumaroon}}l p{6.2cm} l l l}
-\toprule
-\rowcolor{gray100}\bfseries\color{daunavy}Mã & \bfseries\color{daunavy}Mô tả chức năng & \bfseries\color{daunavy}Nhóm & \bfseries\color{daunavy}Kỹ thuật Java chính & \bfseries\color{daunavy}Phụ trách \\
-\midrule
-F01 & Chốt giao thức văn bản theo dòng (\code{JOIN}, \code{GUESS}, \code{SCORE}...) & Phần lõi & Biểu thức \code{switch}, \code{String::strip} (Ch1, Ch6) & Bình, Đạt \\
-F02 & \code{enum TrangThaiVan}, \code{GoiY} và \code{sealed interface KetQua<T>} & Phải làm & \code{enum}, \code{sealed}, \code{synchronized} (Ch4, Ch6) & Huỳnh Tiến Đạt \\
-F03 & \code{record LuotDoan} bất biến kèm kiểm tra hợp lệ khi tạo & Phải làm & \code{record}, compact constructor (Ch6) & Huỳnh Tiến Đạt \\
-F04 & Lớp \code{Game}: sinh số bí mật, nhận lượt đoán, chốt người thắng & Phải làm & \code{synchronized}, \code{Optional} (Ch4, Ch6) & Huỳnh Tiến Đạt \\
-F05 & Kiểm thử đồng thời $N$ luồng đoán cùng lúc trên \code{Game} & Phải làm & \code{ExecutorService}, \code{Callable}, \code{Future} (Ch4) & Huỳnh Tiến Đạt \\
-F06 & Máy chủ TCP một máy khách (\code{ServerSocket}, \code{try-with-resources}) & Phần lõi & \code{ServerSocket}, \code{BufferedReader} (Ch5, Ch6) & Trần Thanh Bình \\
-F07 & Giao diện máy khách \code{ClientUI} tách luồng đọc mạng riêng & Phần lõi & Swing, \code{Thread}, \code{Lambda} (Ch2, Ch4, Ch5) & Trần Thanh Bình \\
-F08 & Phục vụ nhiều máy khách với bể luồng \code{ClientHandler} & Phần lõi & \code{Executors.newFixedThreadPool} (Ch4, Ch5) & Trần Thanh Bình \\
-F09 & Sổ người chơi trực tuyến (\code{SoNguoiChoiOnline}) & Phải làm & \code{ConcurrentHashMap}, \code{Optional} (Ch5, Ch6) & Trần Thanh Bình \\
-F10 & Phát tin chung (\code{broadcast}) tới mọi người chơi trực tuyến & Phải làm & \code{PrintWriter}, \code{forEach}, \code{synchronized} (Ch4, Ch5) & Trần Thanh Bình \\
-F11 & Máy chủ mở ván (\code{WAITING} $\to$ \code{PLAYING}) và phát khoảng số & Phần lõi & \code{enum}, \code{synchronized} (Ch4, Ch6) & Trần Thanh Bình \\
-F12 & Nhận lượt đoán qua mạng, ngoại lệ riêng \code{LoiLenhDoanException} & Phần lõi & \code{Integer::parseInt}, custom \code{Exception} (Ch2, Ch6) & Huỳnh Tiến Đạt \\
-F13 & Công bố người thắng, đóng ván (\code{FINISHED}), chặn đoán muộn & Phần lõi & \code{synchronized}, \code{Optional} (Ch4, Ch6) & Huỳnh Tiến Đạt \\
-F14 & Bảng điểm nhiều ván (\code{KhoBangDiem}), sắp xếp điểm giảm/tên tăng & Phải làm & \code{Map.merge}, \code{Comparator.comparingInt} (Ch3, Ch5) & Huỳnh Tiến Đạt \\
-F15 & Lịch sử đoán của mỗi người (\code{KhoLichSuDoan}) sao chép phòng thủ & Phải làm & \code{Map<String, List<LuotDoan>>}, immutability (Ch3, Ch6) & Huỳnh Tiến Đạt \\
-F16 & Thống kê số lần đoán trung bình bằng Streams API (\code{ThongKeService}) & Phải làm & \code{Stream}, \code{filter}, \code{average}, \code{groupingBy} (Ch2) & Huỳnh Tiến Đạt \\
-F17 & Hiển thị \code{SCORE}, \code{HISTORY}, \code{STATS} lên màn hình Client & Phần lõi & \code{Collectors.joining}, \code{text block} (Ch2, Ch6) & Trần Thanh Bình \\
-F18 & Xử lý ngắt kết nối đột ngột và dọn dẹp tài nguyên & Phần lõi & \code{try-with-resources}, \code{IOException} (Ch5, Ch6) & Trần Thanh Bình \\
-F19 & Chế độ đoán lần lượt theo vòng (\code{CheDoDoan}, \code{ArrayDeque}) & Phần lõi & \code{Deque}/\code{ArrayDeque}, \code{poll}/\code{offer} (Ch3, Ch4) & Huỳnh Tiến Đạt \\
-F20 & Giới hạn thời gian mỗi ván (tự động đóng ván khi hết giờ) & Mở rộng & \code{ExecutorService}, \code{Future}, \code{volatile} (Ch4) & Huỳnh Tiến Đạt \\
-F21 & Nhiều phòng chơi song song chống bế tắc (\code{PhongChoi}, \code{QuanLyPhongChoi}) & Mở rộng & \code{ConcurrentHashMap}, Lock Ordering (Ch4, Ch5) & Trần Thanh Bình \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\section{Thiết kế kiến trúc hệ thống}
-
-Kiến trúc tổng thể của hệ thống được tổ chức theo mô hình 3 tầng phân tách
-nghiêm ngặt như minh họa ở Hình~\ref{fig:kientruc}:
+Kiến trúc hệ thống tuân thủ nguyên lý tách biệt mối quan tâm (Separation of
+Concerns):
 \begin{enumerate}[leftmargin=1.6em, itemsep=2pt]
-  \item \textbf{Tầng Giao diện \& Mạng (\code{doanso.ui}, \code{doanso.net}):}
-        Gồm \code{ClientUI}, \code{GameServer}, \code{ClientHandler},
-        \code{SoNguoiChoiOnline} và \code{LoiLenhDoanException}. Tầng này
-        đảm nhận toàn bộ giao tiếp Socket TCP, phân tích cú pháp lệnh văn bản
-        và chuyển lời gọi xuống tầng nghiệp vụ.
-  \item \textbf{Tầng Nghiệp vụ (\code{doanso.domain}, \code{doanso.service}):}
-        Gồm \code{Game}, \code{PhongChoi}, \code{LuotDoan},
-        \code{TrangThaiVan}, \code{GoiY}, \code{CheDoDoan}, \code{KetQua},
-        \code{ThongKeService}, \code{QuanLyPhong} và \code{QuanLyPhongChoi}.
-        Tầng này không chứa bất kỳ lệnh nhập xuất mạng hay giao diện nào.
-  \item \textbf{Tầng Lưu trữ (\code{doanso.repo}):} Gồm \code{KhoBangDiem} và
-        \code{KhoLichSuDoan}, chịu trách nhiệm lưu trữ an toàn luồng và trả
-        về các bản sao phòng thủ.
+  \item \textbf{Tầng Giao diện \& Mạng (\code{ui}, \code{net}):} Tiếp nhận yêu
+        cầu người dùng, xử lý các kết nối Socket TCP, chuyển đổi chuỗi văn bản
+        thành các lệnh gọi nghiệp vụ.
+  \item \textbf{Tầng Nghiệp vụ (\code{domain}, \code{service}):} Xử lý toàn bộ
+        logic tính toán, so sánh số bí mật, chuyển đổi trạng thái ván, xếp
+        hàng lần lượt và điều phối phòng chơi. Tầng này độc lập hoàn toàn với
+        Socket giúp việc viết unit test cực kỳ đơn giản và mạnh mẽ.
+  \item \textbf{Tầng Lưu trữ (\code{repo}):} Đóng gói các kho lưu trữ dữ liệu
+        an toàn luồng trong bộ nhớ (in-memory repositories) với cơ chế bảo vệ
+        sao chép phòng thủ (defensive copying).
 \end{enumerate}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{02-kien-truc-cac-tang.drawio.png}
-\caption{Sơ đồ kiến trúc 3 tầng và chiều phụ thuộc một chiều giữa các gói.}
+\includegraphics[width=0.95\textwidth]{02-kien-truc-cac-tang.drawio.png}
+\caption{Sơ đồ kiến trúc tổng thể 3 tầng của hệ thống.}
 \label{fig:kientruc}
 \end{figure}
 
-Sơ đồ lớp UML chi tiết của toàn bộ các lớp, \code{record}, \code{enum} và
-\code{interface} trong 5 gói của dự án được trình bày ở Hình~\ref{fig:uml}.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.98\textwidth]{03-so-do-lop-uml.drawio.png}
-\caption{Sơ đồ lớp UML tổng thể của hệ thống.}
-\label{fig:uml}
-\end{figure}
-
-\section{Thiết kế dữ liệu và giao thức truyền thông}
-
-Cấu trúc các kiểu dữ liệu bất biến cốt lõi của tầng miền nghiệp vụ và quy ước
-giao thức văn bản giữa \code{ClientUI} và \code{GameServer} được đặc tả tại
-Bảng~\ref{tab:dulieu}.
+\section{Thiết kế dữ liệu và các thực thể Domain}
 
 \begin{table}[H]
 \centering
-\caption{Đặc tả các cấu trúc dữ liệu miền nghiệp vụ và lệnh giao thức chính.}
+\caption{Cấu trúc các thực thể dữ liệu nghiệp vụ chính của hệ thống.}
 \label{tab:dulieu}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}>{\bfseries\color{daunavy}}l >{\color{daumaroon}}l p{8.2cm}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}>{\bfseries\color{daunavy}}l >{\color{daumaroon}}l p{8.4cm}}
 \toprule
-\rowcolor{gray100}\bfseries\color{daunavy}Thành phần / Lệnh & \bfseries\color{daumaroon}Phân loại & \bfseries\color{daunavy}Cấu trúc và quy ước \\
+\rowcolor{gray100}\bfseries\color{daunavy}Thực thể & \bfseries\color{daumaroon}Kiểu dữ liệu & \bfseries\color{daunavy}Mô tả và ý nghĩa thiết kế \\
 \midrule
-\code{LuotDoan}      & \code{record}           & \code{(String nguoiChoi, int soDoan, LocalDateTime thoiDiem, GoiY ketQuaGoiY)} \\
-\code{HangBangDiem}  & \code{record}           & \code{(String tenNguoiChoi, int diem)} xếp giảm theo điểm, tăng theo tên \\
-\code{TrangThaiVan}  & \code{enum}             & \code{WAITING} $\to$ \code{PLAYING} $\to$ \code{FINISHED} (chặn chuyển ngược) \\
-\code{CheDoDoan}     & \code{enum}             & \code{DONG\_THOI} (mặc định) và \code{LAN\_LUOT} (xoay vòng \code{ArrayDeque}) \\
-\code{JOIN <tên>}    & Lệnh Client $\to$ Server & Đăng ký tên người chơi trực tuyến; phản hồi \code{OK JOIN <tên>} \\
-\code{START [a b]}   & Lệnh Client $\to$ Server & Mở ván mới trong khoảng $[a..b]$; phát \code{INFO BAT\_DAU\_VAN} \\
-\code{GUESS <số>}    & Lệnh Client $\to$ Server & Gửi số đoán; trả \code{HIGHER}, \code{LOWER}, \code{WIN} hoặc \code{ERROR} \\
-\code{SCORE/HISTORY/STATS} & Lệnh tra cứu      & Trả bảng xếp hạng, lịch sử cá nhân và thống kê Streams \\
+\code{LuotDoan}     & \code{record}           & Bản ghi bất biến: tên người chơi, số đoán, thời điểm (LocalDateTime), kết quả gợi ý \\
+\code{TrangThaiVan} & \code{enum}             & Trạng thái vòng đời ván chơi: WAITING, PLAYING, FINISHED \\
+\code{GoiY}         & \code{enum}             & Kết quả so sánh số đoán: HIGHER, LOWER, CORRECT \\
+\code{CheDoDoan}    & \code{enum}             & Chế độ đoán của ván chơi: DONG\_THOI, LAN\_LUOT \\
+\code{KetQua}       & \code{sealed interface} & Mô hình kết quả thống nhất: \code{ThanhCong} hoặc \code{ThatBai} \\
+\code{PhongChoi}    & \code{class}            & Thực thể phòng chơi độc lập: có ván, bảng điểm, lịch sử và khóa đồng bộ riêng \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\section{Thiết kế luồng tương tác và giải thuật xử lý lượt đoán}
+\section{Thiết kế sơ đồ lớp UML}
 
-Trình tự tương tác qua mạng từ lúc người chơi kết nối, mở ván, gửi lượt đoán
-đến khi máy chủ công bố người thắng được mô tả trong sơ đồ tuần tự ở
-Hình~\ref{fig:tuantu} và lưu đồ xử lý ở Hình~\ref{fig:luudo}.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{03-so-do-lop-uml.drawio.png}
+\caption{Sơ đồ lớp UML chi tiết của hệ thống trò chơi đoán số.}
+\label{fig:uml}
+\end{figure}
+
+\section{Thiết kế luồng xử lý và tương tác tuần tự}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{04-so-do-tuan-tu.drawio.png}
-\caption{Sơ đồ tuần tự xử lý phiên chơi đoán số qua mạng TCP.}
+\caption{Sơ đồ tuần tự tương tác mạng giữa Máy khách và Máy chủ khi đoán số.}
 \label{fig:tuantu}
 \end{figure}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.88\textwidth]{05-luu-do-phan-loi.drawio.png}
-\caption{Lưu đồ kiểm tra hợp lệ và xử lý lượt đoán đồng bộ trên máy chủ.}
-\label{fig:luudo}
-\end{figure}
-
-Giải thuật~\ref{alg:doanso} trình bày chi tiết quy trình xử lý đồng bộ một
-lượt đoán bên trong phương thức \code{Game.doanSo(nguoiChoi, soDoan)}, hỗ trợ
-đồng thời cả hai chế độ \code{DONG\_THOI} và \code{LAN\_LUOT} (\code{F04},
-\code{F13}, \code{F19}).
-
-\begin{algorithm}[H]
-\caption{Xử lý đồng bộ lượt đoán và xoay vòng hàng đợi trong \code{Game.doanSo}.}
-\label{alg:doanso}
-\begin{algorithmic}[1]
-\Require Tên người chơi $u$, giá trị số đoán $g$, đối tượng ván chơi hiện tại (giữ khóa \code{synchronized}).
-\Ensure Kết quả \code{KetQua<LuotDoan>} (\code{ThanhCong} hoặc \code{ThatBai}).
-\If{\code{!trangThai.coTheDoan()}}
-  \State \Return \code{ThatBai(maLoiTrangThai, "Không thể đoán khi trạng thái khác PLAYING")}
-\EndIf
-\If{$u = \text{null}$ \textbf{or} $u.\text{isBlank}()$}
-  \State \Return \code{ThatBai("TEN\_KHONG\_HOP\_LE", "Tên rỗng")}
-\EndIf
-\If{\code{!nguoiChoiTrongVan.isEmpty()} \textbf{and} $u \notin \code{nguoiChoiTrongVan}$}
-  \State \Return \code{ThatBai("NGUOI\_CHOI\_DA\_ROI\_VAN", "Người chơi đã rời ván")}
-\EndIf
-\If{$\code{cheDoDoan} = \code{LAN\_LUOT}$ \textbf{and} $\code{hangDoiLuot.peek()} \neq u$}
-  \State \Return \code{ThatBai("CHUA\_TOI\_LUOT", "Chưa tới lượt")}
-\EndIf
-\If{$g < \code{min}$ \textbf{or} $g > \code{max}$}
-  \State \Return \code{ThatBai("NGOAI\_KHOANG", "Số đoán ngoài khoảng cho phép")}
-\EndIf
-\State $\text{goiY} \gets \code{GoiY.soSanh}(g, \code{soBiMat})$
-\State $\text{luot} \gets \text{new } \code{LuotDoan}(u, g, \code{LocalDateTime.now()}, \text{goiY})$
-\State $\code{dsLuotDoan.add}(\text{luot})$
-\If{$\text{goiY} = \code{CORRECT}$}
-  \State $\code{nguoiThang} \gets u$; \quad $\code{trangThai} \gets \code{FINISHED}$
-\ElsIf{$\code{cheDoDoan} = \code{LAN\_LUOT}$}
-  \State $\text{daDoan} \gets \code{hangDoiLuot.poll()}$; \quad $\code{hangDoiLuot.offer}(\text{daDoan})$
-\EndIf
-\State \Return \code{ThanhCong(luot, goiY.getMoTa())}
-\end{algorithmic}
-\end{algorithm}
-
-\begin{luuy}
-Ở dòng 11--13 của Giải thuật~\ref{alg:doanso}, việc kiểm tra khoảng số
-$[min..max]$ được thực hiện \textbf{trước} khi xoay hàng đợi
-\code{hangDoiLuot.poll()}/\code{offer()}. Nhờ vậy, nếu người đang giữ lượt
-nhập nhầm số ngoài khoảng (\code{NGOAI\_KHOANG}), họ nhận thông báo lỗi để
-đoán lại chứ không bị mất lượt oan.
-\end{luuy}

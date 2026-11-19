@@ -8,7 +8,7 @@ import os
 import subprocess
 import base64
 
-BASE_DIR = r"C:\Users\Admin\OneDrive\Desktop\du an\project-tro-choi-doan-so-nhieu-nguoi"
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DOCS_DIR = os.path.join(BASE_DIR, "docs", "bao-cao")
 FIGS_DIR = os.path.join(DOCS_DIR, "figs")
 
@@ -340,12 +340,14 @@ html_content = f"""<!DOCTYPE html>
   .code-block {{
     background-color: #F8F9FA;
     border: 1px solid #E9ECEF;
+    border-left: 3px solid #FBAE40;
     border-radius: 4px;
     padding: 10px 14px;
     margin: 14px 0;
     font-family: 'Consolas', 'Courier New', monospace;
     font-size: 9.5pt;
     line-height: 1.45;
+    white-space: pre-wrap;
     overflow-x: auto;
   }}
 
@@ -640,7 +642,7 @@ html_content = f"""<!DOCTYPE html>
 
 <div class="box-def">
   <div class="box-def-title">Định nghĩa · Giao thức văn bản hướng dòng (Stream-based Text Protocol)</div>
-  Là giao thức truyền thông dựa trên luồng ký tự thuần túy, trong đó các thông điệp yêu cầu và phản hồi được phân tách bởi ký tự xuống dòng (<code>\n</code> hoặc <code>\r\n</code>). Mỗi dòng chứa một từ khóa lệnh đứng đầu, theo sau là các tham số ngăn cách bằng khoảng trắng.
+  Là giao thức truyền thông dựa trên luồng ký tự thuần túy, trong đó các thông điệp yêu cầu và phản hồi được phân tách bởi ký tự xuống dòng (<code>\\n</code> hoặc <code>\\r\\n</code>). Mỗi dòng chứa một từ khóa lệnh đứng đầu, theo sau là các tham số ngăn cách bằng khoảng trắng.
 </div>
 
 <p>Ưu điểm vượt trội của giao thức văn bản là tính trong sáng, độc lập nền tảng, dễ dàng kiểm thử thủ công bằng các công cụ như Telnet/Netcat và không phụ thuộc vào phiên bản lớp như cơ chế tuần tự hóa nhị phân (<code>Serializable</code>).</p>
@@ -653,11 +655,11 @@ html_content = f"""<!DOCTYPE html>
 
 <p>Để giải quyết bài toán thống kê số lần đoán trung bình mỗi ván và trung bình mỗi người chơi theo yêu cầu của F16, hệ thống áp dụng Java Streams API với công thức tính toán toán học chuẩn mực:</p>
 
-<div style="text-align: center; margin: 15px 0; font-size: 13pt;">
-  $$\\overline{{L}} = \\frac{{1}}{{|V|}} \\sum_{{v \\in V}} |L_v|$$ \\quad (2.1)
+<div style="text-align: center; margin: 15px 0; font-size: 13pt; font-family: 'Times New Roman', serif;">
+  <i>L&#772;</i> = (1 / |<i>V</i>|) &sum;<sub><i>v</i> &isin; <i>V</i></sub> |<i>L<sub>v</sub></i>| &nbsp;&nbsp;&nbsp;&nbsp; (2.1)
 </div>
 
-<p class="no-indent">trong đó $V$ là tập hợp các ván chơi đã hoàn tất hợp lệ (loại bỏ các ván chưa kết thúc hoặc bị hủy), và $|L_v|$ là tổng số lượt đoán ghi nhận được trong ván chơi $v$. Thao tác tính toán được thực hiện hoàn toàn thông qua chuỗi hàm <code>filter()</code>, <code>mapToInt()</code> và <code>average()</code> của <code>IntStream</code> (Chương 2).</p>
+<p class="no-indent">trong đó <i>V</i> là tập hợp các ván chơi đã hoàn tất hợp lệ (loại bỏ các ván chưa kết thúc hoặc bị hủy), và |<i>L<sub>v</sub></i>| là tổng số lượt đoán ghi nhận được trong ván chơi <i>v</i>. Thao tác tính toán được thực hiện hoàn toàn thông qua chuỗi hàm <code>filter()</code>, <code>mapToInt()</code> và <code>average()</code> của <code>IntStream</code> (Chương 2).</p>
 
 <div class="box-remember">
   <div class="box-remember-title">Ghi nhớ</div>

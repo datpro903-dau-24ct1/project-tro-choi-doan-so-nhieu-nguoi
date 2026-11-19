@@ -6,26 +6,40 @@
 %  Build:  latexmk -xelatex do-an.tex
 %  Overleaf: Menu > Compiler > XeLaTeX, rồi bấm Recompile.
 % =====================================================================
+% \documentclass phải nằm ở file này, không được chuyển vào settings.tex,
+% vì Overleaf dò file chính bằng cách tìm file có chứa \documentclass.
 \documentclass[12pt, a4paper, oneside]{book}
 \input{styles/settings}
 
 % =====================================================================
-%  THÔNG TIN ĐỒ ÁN / BÀI TẬP LỚN
+%  PHẦN EM ĐIỀN: thông tin đồ án
 % =====================================================================
+% Loại báo cáo
 \crname{BÁO CÁO BÀI TẬP LỚN LẬP TRÌNH JAVA NÂNG CAO}
+% Học phần
 \cmonhoc{Học phần AJP20101 \textperiodcentered{} Lập trình Java nâng cao}
+% Tên đề tài. Dùng \\ để ngắt dòng cho cân đối trên bìa.
 \ctname{ĐỀ TÀI 30: XÂY DỰNG HỆ THỐNG TRÒ CHƠI\\ĐOÁN SỐ NHIỀU NGƯỜI QUA MẠNG TCP}
+% Họ tên sinh viên và mã số sinh viên
 \cstuname{Trần Thanh Bình \textperiodcentered{} Huỳnh Tiến Đạt}
-\cmssv{Nhóm Bình -- Đạt}
+\cmssv{24CT1}
+% Lớp
 \clopsv{CNTT 24CT1}
+% Ngành
 \csCouncil{Công nghệ thông tin}
+% Giảng viên hướng dẫn
 \csSupervise{TS. Đỗ Phúc Hảo}
+% Năm học
 \cttime{2025--2026}
+% Khoa quản lý
 \csdeptname{KHOA CÔNG NGHỆ THÔNG TIN}
+% Nơi thực hiện
 \csplace{Đà Nẵng}
 
 \begin{document}
 
+% Bìa trang trọng có khung kép. Muốn dùng bìa hiện đại theo bộ giáo
+% trình của khoa thì thay dòng dưới bằng \coverpagehiendai
 \coverpage
 
 % ---------------------------------------------------------------------
@@ -41,7 +55,6 @@
 \tableofcontents
 \listoffigures
 \listoftables
-\listofalgorithms
 
 % ---------------------------------------------------------------------
 %  THÂN BÁO CÁO: sáu chương theo quy cách của học phần
@@ -61,6 +74,8 @@
 % ---------------------------------------------------------------------
 \backmatter
 
+% \phantomsection tạo mốc neo riêng cho mục lục, nếu thiếu thì hyperref
+% báo trùng neo giữa dấu trang và dấu trang cha.
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{Tài liệu tham khảo}

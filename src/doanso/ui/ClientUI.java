@@ -251,6 +251,15 @@ public class ClientUI extends JFrame {
     private void xuLyTinNhanServer(String dong) {
         if (dong.startsWith("INFO BAT_DAU_VAN")) {
             capNhatTrangThai("Ván mới đã bắt đầu! Hãy đoán số.");
+        } else if (dong.startsWith("INFO LUOT_TIEP_THEO")) {
+            String nguoiDenLuot = dong.substring("INFO LUOT_TIEP_THEO".length()).strip();
+            if (nguoiDenLuot.equalsIgnoreCase(tenNguoiChoi)) {
+                capNhatTrangThai("ĐẾN LƯỢT BẠN ĐOÁN! Hãy nhập số.");
+            } else {
+                capNhatTrangThai("Đang chờ lượt của: " + nguoiDenLuot);
+            }
+        } else if (dong.startsWith("ERROR CHUA_TOI_LUOT")) {
+            capNhatTrangThai(dong.substring("ERROR CHUA_TOI_LUOT".length()).strip());
         } else if (dong.startsWith("INFO NGUOI_THANG")) {
             capNhatTrangThai("Ván chơi kết thúc: " + dong);
         } else if (dong.startsWith("HIGHER")) {

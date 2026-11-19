@@ -55,7 +55,7 @@ public class ClientHandler implements Runnable {
                     if ("BYE".equals(phanHoi)) {
                         break;
                     }
-                } catch (RuntimeException e) {
+                } catch (Throwable e) {
                     out.println("ERROR LOI_NOI_BO");
                     break;
                 }

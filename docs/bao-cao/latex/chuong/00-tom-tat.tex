@@ -3,32 +3,28 @@
 % ---------------------------------------------------------------------
 \begin{abstract}
 
-Ứng dụng mạng tương tác thời gian thực nhiều người dùng là một bài toán cốt
-lõi trong kỹ thuật phần mềm hiện đại. Bài tập lớn này xây dựng hệ thống
-\term{Trò chơi đoán số nhiều người qua mạng TCP} (Đề tài số 30) trên nền tảng
-Java 21. Thách thức trung tâm của bài toán nằm ở việc đồng bộ hóa trạng thái
-khi nhiều máy khách cùng gửi lượt đoán đồng thời tới máy chủ, loại bỏ hiện
-tượng tranh chấp dữ liệu \en{(race condition)}, phòng tránh bế tắc luồng
-\en{(deadlock)} khi người chơi chuyển giữa nhiều phòng chơi song song, và bảo
-đảm độ bền vững của máy chủ khi máy khách ngắt kết nối đột ngột giữa ván.
+Báo cáo trình bày chi tiết kết quả xây dựng hệ thống \textbf{Trò chơi đoán số
+nhiều người (Multiplayer Number Guessing Game)} qua mạng TCP -- Đề tài số 30
+thuộc học phần Lập trình Java nâng cao (AJP20101). Thách thức trung tâm của
+bài toán nằm ở việc quản lý trạng thái đồng thời khi nhiều người chơi cùng gửi
+lượt đoán trong thời gian thực, loại bỏ xung đột tranh chấp dữ liệu
+(\textit{Race Condition}), phòng tránh bế tắc vĩnh viễn (\textit{Deadlock})
+khi điều phối nhiều phòng chơi, và bảo đảm tính bền vững của dịch vụ mạng khi
+máy khách ngắt kết nối đột ngột.
 
-Để giải quyết trọn vẹn các thách thức trên, nhóm thiết kế hệ thống theo kiến
-trúc 3 tầng phân tách độc lập gồm Tầng Giao diện và Mạng (\code{ui},
-\code{net}), Tầng Nghiệp vụ (\code{domain}, \code{service}) và Tầng Lưu trữ
-(\code{repo}). Hệ thống vận dụng mô hình máy chủ đa luồng
-\en{(thread-per-connection)} với bể luồng cố định \code{ExecutorService},
-giao thức văn bản hướng dòng qua \code{BufferedReader} và \code{PrintWriter}
-có bật \code{auto-flush}, cấu trúc bản ghi bất biến \code{record LuotDoan},
-kiểu kết quả đóng kín \code{sealed interface KetQua<T>}, hàng đợi hai đầu
-\code{ArrayDeque} cho chế độ đoán lần lượt theo vòng, tác vụ hẹn giờ
-\code{Future} cho giới hạn thời gian mỗi ván, và quy tắc giành khóa theo thứ
-tự từ điển cố định \en{(lock ordering rule)} để chống bế tắc. Toàn bộ 21 chức
-năng từ \code{F01} đến \code{F21} đã được phát triển theo quy trình hướng
-kiểm thử \en{(Test-Driven Development -- TDD)} và vượt qua \textbf{103/103 ca
-kiểm thử tự động JUnit 5} (đạt tỷ lệ 100\%) trong thời gian dưới 6 giây.
+Nhóm đã áp dụng phương pháp thiết kế kiến trúc 3 tầng phân tách độc lập (Tầng
+Giao diện \& Mạng, Tầng Nghiệp vụ, Tầng Lưu trữ) kết hợp các kỹ thuật hiện đại
+của Java 21: cấu trúc bản ghi bất biến \code{record} với compact constructor,
+kết quả kín \code{sealed interface}, bể luồng phục vụ kết nối
+\code{thread-per-connection}, cấu trúc bảng băm đồng thời
+\code{ConcurrentHashMap}, và thuật toán sắp xếp khóa phòng cố định
+(\textit{Lock Ordering Rule}). Toàn bộ 21 chức năng theo đặc tả đề tài đã được
+triển khai hoàn chỉnh theo phương pháp phát triển hướng kiểm thử (TDD), vượt
+qua \textbf{103 / 103 ca kiểm thử tự động JUnit 5 với tỷ lệ thành công 100\%}.
 
 \vspace{0.8em}
-\noindent\textbf{Từ khoá:} lập trình mạng Socket TCP, Java 21, đồng bộ hóa đa
-luồng, chống bế tắc Lock Ordering, Streams API, phát triển hướng kiểm thử TDD.
+\noindent\textbf{Từ khoá:} Lập trình mạng Socket TCP, Java 21 LTS, Đồng bộ hóa
+đa luồng, Lock Ordering chống Deadlock, Streams API, Test-Driven Development
+(TDD).
 
 \end{abstract}

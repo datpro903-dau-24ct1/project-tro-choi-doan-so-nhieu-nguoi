@@ -5,92 +5,79 @@
 \label{ch:modau}
 
 \begin{muctieu}
-Chương mở đầu trình bày bối cảnh thực tế và lý do chọn đề tài, xác định các
-mục tiêu định lượng cần đạt được, giới hạn phạm vi thực hiện và nêu bố cục
-tổng thể của báo cáo.
+Chương mở đầu trình bày bối cảnh và lý do chọn đề tài, xác định các mục tiêu
+kỹ thuật cụ thể cần đạt được, giới hạn phạm vi nghiên cứu và phân định cấu
+trúc tổng thể của bản báo cáo bài tập lớn.
 \end{muctieu}
 
 \section{Lý do chọn đề tài}
 
-Trong bối cảnh các hệ thống phân tán và ứng dụng tương tác trực tuyến ngày
-càng phổ biến, việc xây dựng một máy chủ mạng có khả năng phục vụ đồng thời
-nhiều kết nối khách mà vẫn giữ tính nhất quán tuyệt đối của dữ liệu là kỹ
-năng thiết yếu đối với kỹ sư phần mềm. Bài toán \term{Trò chơi đoán số nhiều
-người} \en{(Multiplayer Number Guessing Game)} tuy có luật chơi quen thuộc
-nhưng hội tụ đầy đủ các thách thức kỹ thuật tiêu biểu của lập trình hệ thống
-trên nền tảng Java: giao tiếp mạng hướng dòng qua Socket TCP, điều phối bể
-luồng phục vụ nhiều máy khách song song, kiểm soát tranh chấp khi nhiều luồng
-cùng đoán trúng ở một thời điểm, luân chuyển lượt chơi bằng hàng đợi, tự động
-đóng ván khi hết giờ và quản lý nhiều phòng chơi độc lập.
+Trong thời đại mạng máy tính và điện toán phân tán phát triển mạnh mẽ, việc
+làm chủ kỹ năng xây dựng các ứng dụng mạng đa người dùng (multi-user network
+applications) hoạt động ổn định và chính xác trong môi trường tương tác thời
+gian thực là yêu cầu sống còn đối với sinh viên ngành Công nghệ thông tin. Bài
+toán ``Trò chơi đoán số nhiều người'' (Đề tài số 30) tuy có luật chơi trực
+quan nhưng đặt ra đầy đủ những bài toán kỹ thuật phức tạp nhất trong công nghệ
+phần mềm: lập trình Socket TCP hướng dòng tin cậy, điều phối bể luồng máy chủ
+phục vụ đồng thời hàng chục khách, đồng bộ hóa trạng thái phiên chơi nhằm
+triệt tiêu tranh chấp (Race Condition), sắp xếp khóa tránh bế tắc luồng
+(Deadlock), và tổng hợp số liệu thống kê bằng Streams API hiện đại.
 
-Đề tài số 30 được nhóm lựa chọn vì tính trực quan, dễ kiểm chứng và bám sát
-trọn vẹn sáu chương kiến thức của học phần Lập trình Java nâng cao
-(AJP20101)~\cite{dophuchao2026ajp}: từ lập trình hướng đối tượng (Chương 1),
-biểu thức Lambda và Streams API (Chương 2), cấu trúc dữ liệu Collections và
-so sánh thứ tự (Chương 3), lập trình đa luồng và đồng bộ hóa (Chương 4), vào
-ra luồng và lập trình mạng Socket TCP (Chương 5), đến các tính năng hiện đại
-của Java 21 như \code{record}, \code{enum}, \code{Optional}, biểu thức
-\code{switch} và tính bất biến \en{(immutability)} (Chương 6).
+Đề tài được nhóm lựa chọn thực hiện vì mang tính thực tiễn cao, giúp hai thành
+viên vận dụng toàn diện và sâu sắc hệ thống kiến thức 6 chương của học phần
+Lập trình Java nâng cao (AJP20101)~\cite{dophuchao2026ajp}, đồng thời rèn
+luyện quy trình phát triển phần mềm chuyên nghiệp thông qua phương pháp phát
+triển hướng kiểm thử (Test-Driven Development -- TDD) và quản lý phiên bản với
+Git.
 
-\section{Mục tiêu của đồ án}
+\section{Mục tiêu của bài tập lớn}
 
-Bài tập lớn hướng tới năm mục tiêu cụ thể và đo lường được sau đây:
+Bài tập lớn hướng tới các mục tiêu cụ thể, đo lường được:
 \begin{itemize}[leftmargin=1.6em, itemsep=2pt]
-  \item \textbf{Mục tiêu 1 -- Hạ tầng mạng TCP đa luồng:} Xây dựng máy chủ
-        \code{GameServer} theo mô hình \en{thread-per-connection} dùng bể
-        luồng cố định \code{Executors.newFixedThreadPool(20)}, phục vụ đồng
-        thời tối thiểu 20 máy khách đang hoạt động và xếp hàng an toàn từ máy
-        khách thứ 21 trở đi.
-  \item \textbf{Mục tiêu 2 -- Giao thức văn bản hướng dòng chuẩn hóa:} Thiết
-        kế và cài đặt đầy đủ tập lệnh văn bản theo dòng (\code{JOIN},
-        \code{START}, \code{GUESS}, \code{SCORE}, \code{HISTORY},
-        \code{STATS}, \code{CREATE\_ROOM}, \code{JOIN\_ROOM},
-        \code{LEAVE\_ROOM}, \code{LIST\_ROOMS}, \code{CURRENT\_ROOM},
-        \code{QUIT}) cùng các thông điệp phát chung \code{INFO} và gợi ý
-        \code{HIGHER}/\code{LOWER}/\code{WIN}.
-  \item \textbf{Mục tiêu 3 -- Hoàn thiện 21/21 chức năng (\code{F01}--\code{F21}):}
-        Hiện thực đầy đủ cả phần Lõi, phần Phải làm và phần Mở rộng theo bảng
-        phân rã chức năng của Đề tài 30, bao gồm cả chế độ đoán đồng thời lẫn
-        đoán lần lượt theo vòng (\code{F19}), giới hạn thời gian mỗi ván
-        (\code{F20}) và nhiều phòng chơi song song chống bế tắc (\code{F21}).
-  \item \textbf{Mục tiêu 4 -- Giao diện máy khách đáp ứng:} Xây dựng cửa sổ
-        đồ họa \code{ClientUI} bằng Java Swing tách luồng đọc mạng riêng biệt
-        để giao diện không bị treo khi chờ thông điệp từ máy chủ, đồng thời
-        hiển thị bảng điểm, lịch sử và thống kê rõ ràng bằng \code{text block}.
-  \item \textbf{Mục tiêu 5 -- Kiểm thử tự động TDD đạt 100\%:} Viết kiểm thử
-        trước khi viết mã sản xuất cho mọi chức năng, bao phủ toàn bộ trường
-        hợp biên và đạt 100\% bài kiểm thử JUnit 5 vượt qua (103/103 tests).
+  \item \textbf{Xây dựng hạ tầng máy chủ TCP mạnh mẽ (\code{GameServer}):} Áp
+        dụng mô hình \textit{thread-per-connection} với bể luồng
+        \code{ExecutorService}, phục vụ song song tối thiểu 20 máy khách mà
+        không làm cạn kiệt tài nguyên hệ thống.
+  \item \textbf{Thiết kế giao thức văn bản hướng dòng hoàn chỉnh:} Chuẩn hóa
+        các lệnh \code{JOIN}, \code{GUESS}, \code{START}, \code{SCORE},
+        \code{HISTORY}, \code{STATS}, \code{CREATE\_ROOM}, \code{JOIN\_ROOM},
+        \code{LEAVE\_ROOM}, \code{LIST\_ROOMS}, \code{CURRENT\_ROOM} và
+        \code{QUIT} với cơ chế tự động đẩy dữ liệu (auto-flush).
+  \item \textbf{Hiện thực trọn vẹn 21/21 chức năng (F01--F21):} Đáp ứng 100\%
+        yêu cầu phân rã chức năng, bao phủ đầy đủ cả phần Lõi, phần Phải làm
+        và phần Mở rộng (hẹn giờ đóng ván tự động với \code{Future}, điều phối
+        đa phòng chơi song song).
+  \item \textbf{Xây dựng giao diện máy khách trực quan (\code{ClientUI}):}
+        Ứng dụng giao diện Swing mượt mà, tách luồng đọc mạng chuyên biệt để
+        giữ giao diện luôn đáp ứng, hiển thị nhật ký bằng khối văn bản nghệ
+        thuật (Text Blocks).
+  \item \textbf{Đạt chuẩn chất lượng kiểm thử tự động TDD:} Xây dựng bộ kiểm
+        thử gồm 103 bài test tự động JUnit 5 bao phủ toàn bộ các trường hợp
+        biên, đạt tỷ lệ vượt qua 100\%.
 \end{itemize}
 
 \section{Phạm vi và đối tượng}
 
-\textbf{Đối tượng nghiên cứu:} Cơ chế truyền thông mạng hướng dòng TCP
-Client--Server, mô hình đồng bộ trạng thái ván chơi đa luồng, thuật toán xoay
-vòng lượt đoán, cơ chế hẹn giờ đóng ván và kỹ thuật giành khóa theo thứ tự cố
-định giữa nhiều phòng chơi.
+\textbf{Đối tượng:} Hệ thống trò chơi đoán số nhiều người chơi qua Socket TCP
+trên nền tảng Java 21 Standard Edition.
 
-\textbf{Phạm vi triển khai:} Hệ thống được phát triển trên nền tảng Java 21
-Standard Edition (JDK 21), chỉ sử dụng thư viện chuẩn của JDK và khung kiểm
-thử JUnit 5 (\code{junit-platform-console-standalone.jar}). Toàn bộ trạng
-thái người chơi trực tuyến, bảng điểm nhiều ván và lịch sử lượt đoán được lưu
-trữ trong bộ nhớ bằng các cấu trúc dữ liệu an toàn luồng theo đúng yêu cầu
-của đề bài; không sử dụng các thư viện mạng ngoài (như Netty, Grizzly) hay hệ
-quản trị cơ sở dữ liệu ngoài phạm vi môn học.
+\textbf{Phạm vi:} Hệ thống tập trung vào kiến trúc mạng cục bộ
+(LAN/Localhost), quản lý dữ liệu phiên chơi trong bộ nhớ chính (in-memory)
+bằng các cấu trúc dữ liệu Collections an toàn luồng. Đề tài không sử dụng các
+framework web hay ORM bên ngoài nhằm đảm bảo sinh viên tự tay lập trình và
+kiểm soát từng dòng mã nguồn lõi.
 
 \begin{luuy}
-Nguyên tắc kiến trúc xuyên suốt của đồ án là \textbf{tầng nghiệp vụ
-(\code{doanso.domain}, \code{doanso.service}) hoàn toàn không phụ thuộc vào
-giao diện (\code{doanso.ui}) hay mạng (\code{doanso.net})}. Nhờ đó, toàn bộ
-logic ván chơi, đồng bộ 100 luồng và thống kê Streams đều có thể kiểm thử độc
-lập với tốc độ mili-giây mà không cần mở cổng mạng.
+Tuân thủ nghiêm ngặt chuẩn kiến thức 6 chương của học phần AJP20101: Tầng
+Nghiệp vụ (domain) hoàn toàn không được phụ thuộc vào Tầng Mạng (net) hay Tầng
+Giao diện (ui) để đảm bảo mã nguồn có thể kiểm thử độc lập tuyệt đối.
 \end{luuy}
 
 \section{Bố cục báo cáo}
 
-Phần còn lại của báo cáo được tổ chức như sau. Chương~\ref{ch:coso} trình bày
-cơ sở lý thuyết và công nghệ sử dụng. Chương~\ref{ch:thietke} phân tích bài
-toán, phân rã 21 chức năng và thiết kế kiến trúc 3 tầng. Chương~\ref{ch:caidat}
-mô tả quá trình cài đặt các mô-đun cốt lõi, giao diện và bộ kiểm thử TDD.
-Chương~\ref{ch:ketqua} trình bày kết quả đạt được, các độ đo đánh giá định
-lượng, bàn luận và hạn chế. Chương~\ref{ch:ketluan} tổng kết đồ án, rút ra bài
-học kinh nghiệm và nêu hướng phát triển tiếp theo.
+Nội dung báo cáo được tổ chức thành 6 chương: Chương~\ref{ch:modau} giới thiệu
+tổng quan đề tài; Chương~\ref{ch:coso} trình bày cơ sở lý thuyết và công nghệ;
+Chương~\ref{ch:thietke} phân tích yêu cầu và thiết kế kiến trúc hệ thống;
+Chương~\ref{ch:caidat} mô tả chi tiết cài đặt và kiểm thử;
+Chương~\ref{ch:ketqua} trình bày kết quả và đánh giá; Chương~\ref{ch:ketluan}
+tổng kết và định hướng phát triển trong tương lai.

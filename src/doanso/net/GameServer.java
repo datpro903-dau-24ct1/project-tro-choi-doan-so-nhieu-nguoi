@@ -19,6 +19,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -273,7 +274,7 @@ public class GameServer implements AutoCloseable {
     // F20: Mở ván có giới hạn thời gian (mili-giây)
     public KetQua<Game> moVanMoiCoGioiHanThoiGian(int min, int max, long thoiGianGioiHanMs) {
         if (thoiGianGioiHanMs <= 0) {
-            return new KetQua.ThatBai<>("THOI_GIAN_KHONG_HOP_LE", "Thời gian giới hạn mỗi ván phải lớn hơn 0");
+            return new KetQua.ThatBai<>("THOI_GIAN_KHONG_HOP_LE", "Thoi gian gioi han moi van phai lon hon 0");
         }
         KetQua<Game> kqMo = moVanMoi(min, max);
         if (kqMo instanceof KetQua.ThanhCong<Game> tc) {
@@ -285,7 +286,7 @@ public class GameServer implements AutoCloseable {
     // F20: Mở ván với số bí mật định trước và giới hạn thời gian (dùng cho kiểm thử)
     public KetQua<Game> moVanMoiCoGioiHanThoiGian(int min, int max, int soBiMat, long thoiGianGioiHanMs) {
         if (thoiGianGioiHanMs <= 0) {
-            return new KetQua.ThatBai<>("THOI_GIAN_KHONG_HOP_LE", "Thời gian giới hạn mỗi ván phải lớn hơn 0");
+            return new KetQua.ThatBai<>("THOI_GIAN_KHONG_HOP_LE", "Thoi gian gioi han moi van phai lon hon 0");
         }
         KetQua<Game> kqMo = moVanMoiVoiSoBiMat(min, max, soBiMat);
         if (kqMo instanceof KetQua.ThanhCong<Game> tc) {
@@ -422,6 +423,7 @@ public class GameServer implements AutoCloseable {
             case "SCORE" -> dinhDangBangDiem();
             case "HISTORY" -> dinhDangLichSu(thamSo);
             case "STATS" -> dinhDangThongKe();
+            case "START_TURN" -> "OK START_TURN";
             case "CREATE_ROOM" -> thamSo.isEmpty() ? "ERROR THIEU_MA_PHONG" : "OK CREATE_ROOM " + thamSo.toUpperCase();
             case "JOIN_ROOM" -> thamSo.isEmpty() ? "ERROR THIEU_MA_PHONG" : "OK JOIN_ROOM " + thamSo.toUpperCase();
             case "LEAVE_ROOM" -> "OK LEAVE_ROOM";
@@ -458,9 +460,10 @@ public class GameServer implements AutoCloseable {
                 yield "OK JOIN " + thamSo;
             }
             case "GUESS" -> xuLyLenhGuess(tenNguoiChoiHienTai, thamSo);
-            case "START" -> {
+            case "START", "START_TURN" -> {
                 int min = 1;
                 int max = 100;
+                boolean theoLuot = !"DONG_THOI".equalsIgnoreCase(thamSo);
                 if (!thamSo.isEmpty()) {
                     String[] cacKhoang = thamSo.split("\\s+");
                     if (cacKhoang.length >= 2) {
@@ -470,8 +473,11 @@ public class GameServer implements AutoCloseable {
                         } catch (NumberFormatException ignored) {
                         }
                     }
+                    if (cacKhoang.length >= 3 && "DONG_THOI".equalsIgnoreCase(cacKhoang[2])) {
+                        theoLuot = false;
+                    }
                 }
-                KetQua<Game> kqMo = moVanMoi(min, max);
+                KetQua<Game> kqMo = theoLuot ? moVanMoiTheoLuot(min, max) : moVanMoi(min, max);
                 if (kqMo instanceof KetQua.ThanhCong<Game> tc) {
                     yield "OK START " + tc.duLieu().getMaVan() + " " + min + " " + max;
                 } else if (kqMo instanceof KetQua.ThatBai<Game> tb) {
@@ -690,6 +696,24 @@ public class GameServer implements AutoCloseable {
         dsSocketDangKetNoi.clear();
     }
 
+    private static String boDauTiengViet(String chuoi) {
+        if (chuoi == null) {
+            return "";
+        }
+        String chuanHoa = Normalizer.normalize(chuoi, Normalizer.Form.NFD);
+        return chuanHoa.replaceAll("\\p{M}+", "").replace('đ', 'd').replace('Đ', 'D');
+    }
+
+    private static String dinhDangKetQuaConsole(KetQua<Game> kq) {
+        if (kq instanceof KetQua.ThanhCong<Game> tc) {
+            Game g = tc.duLieu();
+            return "ThanhCong[maVan=#" + g.getMaVan() + ", khoang=[" + g.getMin() + ".." + g.getMax() + "], cheDo=" + g.getCheDoDoan() + ", thongDiep=" + boDauTiengViet(tc.thongDiep()) + "]";
+        } else if (kq instanceof KetQua.ThatBai<Game> tb) {
+            return "ThatBai[maLoi=" + tb.maLoi() + ", lyDo=" + boDauTiengViet(tb.lyDo()) + "]";
+        }
+        return boDauTiengViet(String.valueOf(kq));
+    }
+
     public static void main(String[] args) throws IOException {
         int cong = 8888;
         if (args.length > 0) {
@@ -711,12 +735,31 @@ public class GameServer implements AutoCloseable {
                 String cmd = dong.strip();
                 if (cmd.equalsIgnoreCase("quit") || cmd.equalsIgnoreCase("exit")) {
                     break;
-                } else if (cmd.toLowerCase().startsWith("start")) {
-                    System.out.println(server.moVanMoi(1, 100));
-                } else if (cmd.toLowerCase().startsWith("turn")) {
-                    System.out.println(server.moVanMoiTheoLuot(1, 100));
-                } else if (cmd.toLowerCase().startsWith("timer")) {
-                    System.out.println(server.moVanMoiCoGioiHanThoiGian(1, 100, 30000));
+                }
+                String[] parts = cmd.split("\\s+");
+                String action = parts[0].toLowerCase();
+                int min = 1;
+                int max = 100;
+                long ms = 30000L;
+                if (parts.length >= 3) {
+                    try {
+                        min = Integer.parseInt(parts[1]);
+                        max = Integer.parseInt(parts[2]);
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+                if (parts.length >= 4) {
+                    try {
+                        ms = Long.parseLong(parts[3]);
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+                if (action.equals("start") || action.equals("turn")) {
+                    System.out.println(dinhDangKetQuaConsole(server.moVanMoiTheoLuot(min, max)));
+                } else if (action.equals("sim")) {
+                    System.out.println(dinhDangKetQuaConsole(server.moVanMoi(min, max)));
+                } else if (action.equals("timer")) {
+                    System.out.println(dinhDangKetQuaConsole(server.moVanMoiCoGioiHanThoiGian(min, max, ms)));
                 }
             }
         }
